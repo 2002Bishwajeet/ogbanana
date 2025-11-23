@@ -1,0 +1,24 @@
+@import "tailwindcss";
+
+@theme {
+  --color-bg: #f0f0f0;
+  --color-primary: #ffde00;
+  --color-secondary: #ff90e8;
+  --color-accent: #23a094;
+  --color-card: #ffffff;
+  --color-main: #000000;
+}
+
+@keyframes marquee {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+.animate-marquee {
+  display: inline-block;
+  white-space: nowrap;
+  animation: marquee 20s linear infinite;
+}
