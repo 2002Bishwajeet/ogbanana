@@ -6,7 +6,7 @@ import { NeoCard } from "../components/ui/NeoCard";
 export const LicensePage = memo(() => (
   <div className="max-w-4xl mx-auto px-4 py-16 animate-in fade-in slide-in-from-bottom-4 duration-500">
     <Helmet>
-      <title>License - OGP:BANANA</title>
+      <title>License - OG:BANANA</title>
       <meta name="description" content="Read our license information." />
     </Helmet>
     <div className="flex items-center gap-4 mb-8 border-b-4 border-black pb-4">
@@ -18,34 +18,47 @@ export const LicensePage = memo(() => (
 
     <NeoCard className="mb-8 font-mono bg-card">
       <div className="border-b-2 border-black pb-4 mb-4">
-        <h2 className="text-2xl font-bold">MIT License</h2>
+        <h2 className="text-2xl font-bold">Dual Licensing Model</h2>
         <p className="text-gray-500">Copyright (c) 2025 Bishwajeet Parhi.</p>
       </div>
 
-      <p className="mb-4 text-sm leading-relaxed">
-        Permission is hereby granted, free of charge, to any person obtaining a
-        copy of this software and associated documentation files (the
-        "Software"), to deal in the Software without restriction, including
-        without limitation the rights to use, copy, modify, merge, publish,
-        distribute, sublicense, and/or sell copies of the Software, and to
-        permit persons to whom the Software is furnished to do so, subject to
-        the following conditions:
-      </p>
+      <div className="space-y-6">
+        <div>
+          <h3 className="text-xl font-bold mb-2">
+            1. Open Source License (AGPLv3)
+          </h3>
+          <p className="text-sm leading-relaxed mb-2">
+            This software is available under the GNU Affero General Public
+            License v3.0 (AGPLv3). This license is designed for software that is
+            run over a network.
+          </p>
+          <ul className="list-disc list-inside text-sm space-y-1 ml-2">
+            <li>Free to use for open source projects.</li>
+            <li>Modifications must be released under the same license.</li>
+            <li>Source code must be made available to network users.</li>
+          </ul>
+        </div>
 
-      <p className="mb-4 text-sm leading-relaxed">
-        The above copyright notice and this permission notice shall be included
-        in all copies or substantial portions of the Software.
-      </p>
+        <div>
+          <h3 className="text-xl font-bold mb-2">2. Commercial License</h3>
+          <p className="text-sm leading-relaxed mb-2">
+            For proprietary use, closed-source projects, or if you cannot comply
+            with the AGPLv3 requirements, a commercial license is available.
+          </p>
+          <ul className="list-disc list-inside text-sm space-y-1 ml-2">
+            <li>No copyleft requirements.</li>
+            <li>Keep your source code private.</li>
+            <li>Dedicated support and warranty.</li>
+          </ul>
+        </div>
 
-      <p className="mb-4 text-sm leading-relaxed font-bold bg-primary p-4 border-2 border-main shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-        THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-        OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-        MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-        IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-        CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-        TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-        SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-      </p>
+        <div className="bg-primary p-4 border-2 border-main shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] mt-6">
+          <p className="text-sm font-bold">
+            To purchase a commercial license or for any licensing queries,
+            please contact us directly.
+          </p>
+        </div>
+      </div>
     </NeoCard>
   </div>
 ));

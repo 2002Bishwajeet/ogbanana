@@ -6,7 +6,7 @@ import { NeoCard } from "../components/ui/NeoCard";
 export const PrivacyPolicy = memo(() => (
   <div className="max-w-4xl mx-auto px-4 py-16 animate-in fade-in slide-in-from-bottom-4 duration-500">
     <Helmet>
-      <title>Privacy Policy - OGP:BANANA</title>
+      <title>Privacy Policy - OG:BANANA</title>
       <meta name="description" content="Read our privacy policy." />
     </Helmet>
     <div className="flex items-center gap-4 mb-8 border-b-4 border-black pb-4">
@@ -23,21 +23,20 @@ export const PrivacyPolicy = memo(() => (
         </h3>
         <p className="mb-6">We collect almost nothing.</p>
         <ul className="list-disc pl-6 mt-2">
-            <li>
-              <strong>HTML Content:</strong> We temporarily process the URL you
-              provide to generate tags. It is discarded immediately after
-              processing.
-            </li>
-            <li>
-              <strong>Auth Data:</strong> Handled securely by Appwrite. We don't
-              see your password.
-            </li>
-            <li>
-              <strong>Generations:</strong> We might store your generated images
-              temporarily for caching, but we don't claim ownership.
-            </li>
-          </ul>
-        </p>
+          <li>
+            <strong>HTML Content:</strong> We temporarily process the URL you
+            provide to generate tags. It is discarded immediately after
+            processing.
+          </li>
+          <li>
+            <strong>Auth Data:</strong> Handled securely by Appwrite. We don't
+            see your password.
+          </li>
+          <li>
+            <strong>Generations:</strong> We might store your generated images
+            temporarily for caching, but we don't claim ownership.
+          </li>
+        </ul>
 
         <h3 className="font-black text-2xl uppercase bg-black text-white p-2 inline-block mb-4">
           2. Cookies

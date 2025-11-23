@@ -3,12 +3,17 @@ import { AuthContext, type User } from "../context/AuthContext";
 import { useCallback, useEffect, useState, type ReactNode } from "react";
 import { account } from "../lib/appwrite";
 
-const mapAppwriteUser = (user: Models.User<Models.Preferences>): User => ({
+type ExtendedPreferences = Models.Preferences & {
+  plan?: "free" | "pro";
+  credits?: number;
+};
+
+const mapAppwriteUser = (user: Models.User<ExtendedPreferences>): User => ({
   name: user.name || user.email.split("@")[0],
   email: user.email,
   $id: user.$id,
-  plan: "free", // Implement your own logic for plans
-  credits: 5, // Implement your own logic for credits
+  plan: user.prefs?.plan || "free",
+  credits: user.prefs?.credits || 5,
 });
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
@@ -19,8 +24,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const checkSession = async () => {
       try {
         const sessionUser = await account.get();
-        setUser(mapAppwriteUser(sessionUser));
-      } catch (error) {
+        setUser(
+          mapAppwriteUser(sessionUser as Models.User<ExtendedPreferences>)
+        );
+      } catch {
         // No session
         setUser(null);
       }
@@ -31,15 +38,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const login = useCallback(async (email: string, password: string) => {
     await account.createEmailPasswordSession({ email, password });
     const sessionUser = await account.get();
-    setUser(mapAppwriteUser(sessionUser));
+    setUser(mapAppwriteUser(sessionUser as Models.User<ExtendedPreferences>));
   }, []);
 
   const signup = useCallback(
     async (name: string, email: string, password: string) => {
       await account.create({ userId: ID.unique(), email, password, name });
       await account.createEmailPasswordSession({ email, password });
+      const params = {
+        plan: "free",
+        credits: 5,
+      };
+      account.updatePrefs({ prefs: params });
       const sessionUser = await account.get();
-      setUser(mapAppwriteUser(sessionUser));
+      setUser(mapAppwriteUser(sessionUser as Models.User<ExtendedPreferences>));
     },
     []
   );

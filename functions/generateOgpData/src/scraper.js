@@ -1,19 +1,13 @@
 import puppeteer from 'puppeteer';
+import {
+  extractSection,
+  sanitizeHtml,
+  bodyLooksEmpty,
+  needsBrowserRender,
+} from './utils.js';
 
 const USER_AGENT =
   'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36';
-const JS_HINT_PATTERNS = [
-  /needs\s+javascript/i,
-  /requires\s+javascript/i,
-  /enable\s+javascript/i,
-  /please\s+turn\s+on\s+javascript/i,
-];
-const NOSCRIPT_WARNING_REGEX =
-  /<noscript[^>]*>[\s\S]*?javascript[\s\S]*?<\/noscript>/i;
-const SCRIPT_TAG_REGEX = /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi;
-const EVENT_HANDLER_ATTR_REGEX = /\son[a-z]+\s*=\s*("[^"]*"|'[^']*')/gi;
-const JS_URL_ATTR_REGEX =
-  /(href|src)\s*=\s*("javascript:[^"]*"|'javascript:[^']*')/gi;
 const VIEWPORT = { width: 1280, height: 720 };
 
 const PUPPETEER_ARGS = [
@@ -42,39 +36,6 @@ async function fetchRawHtml(url) {
 
   const html = await response.text();
   return { html, finalUrl: response.url };
-}
-
-function extractSection(html, tagName) {
-  if (!html) return '';
-  const regex = new RegExp(`<${tagName}[^>]*>([\\s\\S]*?)<\\/${tagName}>`, 'i');
-  const match = html.match(regex);
-  return match ? match[1] : '';
-}
-
-function sanitizeHtml(html = '') {
-  return html
-    .replace(SCRIPT_TAG_REGEX, '')
-    .replace(EVENT_HANDLER_ATTR_REGEX, '')
-    .replace(JS_URL_ATTR_REGEX, (match, attr) => `${attr}="#"`)
-    .trim();
-}
-
-function bodyLooksEmpty(html) {
-  const body = extractSection(html, 'body');
-  if (!body) return true;
-  const textOnly = body
-    .replace(/<[^>]+>/g, '')
-    .replace(/&nbsp;/gi, '')
-    .trim();
-  return textOnly.length === 0;
-}
-
-function needsBrowserRender(html) {
-  if (!html) return true;
-  if (NOSCRIPT_WARNING_REGEX.test(html)) return true;
-  const lowered = html.toLowerCase();
-  if (JS_HINT_PATTERNS.some((pattern) => pattern.test(lowered))) return true;
-  return bodyLooksEmpty(html);
 }
 
 async function browseWithPuppeteer(
@@ -133,7 +94,7 @@ export async function scrapeWebsite(url) {
   let finalUrl = fetchedUrl || url;
   let screenshotBase64;
 
-  if (needsBrowserRender(workingHtml)) {
+  if (needsBrowserRender(workingHtml, bodyLooksEmpty, extractSection)) {
     const {
       html: renderedHtml,
       screenshot,

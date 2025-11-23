@@ -1,19 +1,11 @@
 import { useState, useCallback, memo } from "react";
-import { Helmet } from "react-helmet-async";
 import { Sparkles, Flame, ImageIcon, Copy } from "lucide-react";
 import { NeoButton } from "../components/ui/NeoButton";
 import { NeoCard } from "../components/ui/NeoCard";
 
-import { generateOgpTags, roastMyVibe } from "../lib/api"; // Updated import
+import { generateOgpTags } from "../lib/api"; // Updated import
 import { useAuth } from "../context/AuthContext";
-
-// --- Interfaces ---
-interface OGData {
-  title: string;
-  description: string;
-  image: string;
-  url: string;
-}
+import type { OGData } from "../components/socialPreview/SocialPreview";
 
 export const Generator = memo(() => {
   const { user } = useAuth();
@@ -58,45 +50,8 @@ export const Generator = memo(() => {
     }
   }, [urlInput, contextInput, user]);
 
-  const handleRoast = useCallback(async () => {
-    if (!contextInput) return;
-    setIsProcessing(true);
-    setRoast(null);
-
-    try {
-      const text = await roastMyVibe(contextInput);
-      setRoast(text);
-      // Update user credits logic would go here if implemented in AuthContext or similar
-      // if (user) setUser(prev => prev ? ({ ...prev, credits: prev.credits - 1 }) : null);
-    } catch (e: any) {
-      setRoast(e.message || "I'm too tired to roast you right now. Try again.");
-    } finally {
-      setIsProcessing(false);
-    }
-  }, [contextInput]);
-
   return (
     <div className="max-w-5xl mx-auto px-4 py-12 animate-in slide-in-from-bottom-4 duration-500">
-      {generatedResult && (
-        <Helmet>
-          <title>{generatedResult.title}</title>
-          <meta name="description" content={generatedResult.description} />
-          <meta property="og:title" content={generatedResult.title} />
-          <meta
-            property="og:description"
-            content={generatedResult.description}
-          />
-          <meta property="og:image" content={generatedResult.image} />
-          <meta property="og:url" content={generatedResult.url} />
-          <meta name="twitter:card" content="summary_large_image" />
-          <meta name="twitter:title" content={generatedResult.title} />
-          <meta
-            name="twitter:description"
-            content={generatedResult.description}
-          />
-          <meta name="twitter:image" content={generatedResult.image} />
-        </Helmet>
-      )}
       <div className="flex flex-col md:flex-row justify-between items-end mb-8 gap-4 border-b-4 border-black pb-4">
         <div>
           <h2 className="text-5xl font-black mb-2 tracking-tight">GENERATOR</h2>
@@ -119,7 +74,12 @@ export const Generator = memo(() => {
         <div className="flex flex-col gap-8">
           {/* URL Input */}
           <div className="flex flex-col gap-2">
-            <label className="font-black text-xl uppercase">Target URL</label>
+            <label className="font-black text-xl uppercase flex items-center gap-2">
+              Target URL
+              <span className="bg-secondary text-xs px-2 py-1 border border-main transform rotate-2">
+                REQUIRED
+              </span>
+            </label>
             <input
               type="text"
               placeholder="https://your-website.com"
@@ -131,14 +91,11 @@ export const Generator = memo(() => {
 
           {/* Context Input (Crucial for AI) */}
           <div className="flex flex-col gap-2">
-            <label className="font-black text-xl uppercase flex items-center gap-2">
+            <label className="font-black text-xl uppercase ">
               Context / Keywords
-              <span className="bg-secondary text-xs px-2 py-1 border border-main transform rotate-2">
-                REQUIRED
-              </span>
             </label>
             <textarea
-              placeholder="Paste your hero text, blog summary, or loose thoughts here. The AI will distill this into OGP Gold."
+              placeholder="Paste your optional hero text, blog summary, or loose thoughts here. The AI will distill this into OGP Gold."
               className="border-2 border-main p-5 font-mono text-lg outline-none focus:bg-primary transition-colors placeholder:text-gray-400 w-full h-40 resize-none shadow-[4px_4px_0px_0px_rgba(0,0,0,0.2)] focus:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
               value={contextInput}
               onChange={(e) => setContextInput(e.target.value)}
@@ -153,15 +110,6 @@ export const Generator = memo(() => {
               className="flex-1 text-xl py-6 hover:scale-[1.02]"
             >
               {isProcessing ? "PROCESSING..." : "✨ GENERATE MAGIC TAGS"}
-            </NeoButton>
-
-            <NeoButton
-              onClick={handleRoast}
-              disabled={isProcessing || !contextInput}
-              variant="black"
-              className="flex-1 md:flex-none py-6 hover:scale-[1.02]"
-            >
-              {isProcessing ? "THINKING..." : "🔥 ROAST MY VIBE"}
             </NeoButton>
           </div>
         </div>

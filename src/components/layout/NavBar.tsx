@@ -108,7 +108,7 @@ export const NavBar = memo(({ user, onOpenAuth, onLogout }: NavBarProps) => {
               <Zap size={20} fill="#FFDE00" />
             </div>
             <span className="group-hover:text-[#FF90E8] transition-colors">
-              OGP:BANANA
+              OG:BANANA
             </span>
           </div>
 

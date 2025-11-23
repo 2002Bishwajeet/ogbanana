@@ -6,7 +6,7 @@ import { NeoCard } from "../components/ui/NeoCard";
 export const TermsOfService = memo(() => (
   <div className="max-w-4xl mx-auto px-4 py-16 animate-in fade-in slide-in-from-bottom-4 duration-500">
     <Helmet>
-      <title>Terms of Service - OGP:BANANA</title>
+      <title>Terms of Service - OG:BANANA</title>
       <meta name="description" content="Read our terms of service." />
     </Helmet>
     <div className="flex items-center gap-4 mb-8 border-b-4 border-black pb-4">
@@ -22,7 +22,7 @@ export const TermsOfService = memo(() => (
           1. The Agreement
         </h3>
         <p className="mb-6">
-          By accessing OGP:BANANA, you agree to these terms. If you disagree,
+          By accessing OG:BANANA, you agree to these terms. If you disagree,
           please close this tab immediately and go back to writing meta tags
           manually like a peasant.
         </p>
@@ -33,18 +33,18 @@ export const TermsOfService = memo(() => (
         <p className="mb-6">
           You are granted a limited, non-exclusive right to use our AI generator
           to create OGP tags and images.
-          <br />
-          <br />
-          <strong>Do not:</strong>
-          <ul className="list-disc pl-6 mt-2">
-            <li>Use bots to scrape our generator.</li>
-            <li>Generate illegal, hateful, or just plain boring content.</li>
-            <li>
-              Try to reverse engineer the Nano Banana model (it's just Gemini in
-              a trench coat).
-            </li>
-          </ul>
         </p>
+        <p>
+          <strong>Do not:</strong>
+        </p>
+        <ul className="list-disc pl-6 mt-2">
+          <li>Use bots to scrape our generator.</li>
+          <li>Generate illegal, hateful, or just plain boring content.</li>
+          <li>
+            Try to reverse engineer the Nano Banana model (it's just Gemini in a
+            trench coat).
+          </li>
+        </ul>
 
         <h3 className="font-black text-2xl uppercase bg-black text-white p-2 inline-block mb-4">
           3. Liability

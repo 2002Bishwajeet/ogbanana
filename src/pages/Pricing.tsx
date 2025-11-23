@@ -11,7 +11,7 @@ export const Pricing = memo(() => {
   return (
     <div className="max-w-6xl mx-auto px-4 py-20 animate-in zoom-in-95 duration-500">
       <Helmet>
-        <title>Pricing - OGP:BANANA</title>
+        <title>Pricing - OG:BANANA</title>
         <meta name="description" content="Choose a plan that works for you." />
       </Helmet>
       <div className="text-center mb-16">

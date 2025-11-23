@@ -113,7 +113,7 @@ const HowItWorks = memo(() => (
 export const Home = () => (
   <>
     <Helmet>
-      <title>OGP:BANANA - Feed the Algorithm</title>
+      <title>OG:BANANA - Feed the Algorithm</title>
       <meta
         name="description"
         content="Generate perfect Open Graph tags and images for your website using AI."

@@ -43,6 +43,7 @@ export const AuthModal = memo(({ isOpen, onClose }: AuthModalProps) => {
         failure: `${window.location.origin}/error`, // failure
       });
     } catch (e) {
+      console.error("Google login error:", e);
       toast.addToast("Google login failed. Please try again.", "error");
     }
   };
@@ -135,6 +136,7 @@ export const AuthModal = memo(({ isOpen, onClose }: AuthModalProps) => {
                   onChange={(e) => setName(e.target.value)}
                   className="border-2 border-main p-3 font-mono focus:bg-primary focus:outline-none transition-colors"
                   placeholder="Neo"
+                  autoComplete="name"
                 />
               </div>
             )}
@@ -148,6 +150,7 @@ export const AuthModal = memo(({ isOpen, onClose }: AuthModalProps) => {
                 onChange={(e) => setEmail(e.target.value)}
                 className="border-2 border-main p-3 font-mono focus:bg-primary focus:outline-none transition-colors"
                 placeholder="neo@matrix.com"
+                autoComplete="email"
               />
             </div>
 
@@ -160,7 +163,8 @@ export const AuthModal = memo(({ isOpen, onClose }: AuthModalProps) => {
                 onChange={(e) => setPassword(e.target.value)}
                 className="border-2 border-main p-3 font-mono focus:bg-primary focus:outline-none transition-colors"
                 placeholder="••••••••"
-              />
+                autoComplete="current-password"
+              />{" "}
             </div>
 
             {mode === "signup" && (
@@ -173,6 +177,7 @@ export const AuthModal = memo(({ isOpen, onClose }: AuthModalProps) => {
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   className="border-2 border-main p-3 font-mono focus:bg-primary focus:outline-none transition-colors"
                   placeholder="••••••••"
+                  autoComplete="new-password"
                 />
               </div>
             )}

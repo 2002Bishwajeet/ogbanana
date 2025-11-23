@@ -1,32 +1,26 @@
 import { GoogleGenerativeAI } from '@google/genai';
+import { stripHtml, truncate, buildInlineImagePart } from './utils.js';
 
 const nanoBananaPrompt = `
-You are Nano Banana, an elite Design System Analyst and AI Art Director.
+You are Nano Banana, an autonomous AI Design Agent equipped with computer vision and image generation capabilities.
 
 YOUR GOAL:
-You will be provided with a SCREENSHOT of a website. Your task is to analyze this image and write a highly specific image generation prompt (for DALL-E 3 or Midjourney) to create a perfect 1200x630 Open Graph (OGP) preview image that looks exactly like it belongs to that brand.
+You will receive a WEBSITE SCREENSHOT. Your mission is to clone the visual identity of this website (colors, fonts, vibe) and immediately GENERATE a 1200x630 Open Graph (OGP) preview image that looks like it belongs to the same brand.
 
-STRICT DESIGN RULES:
-1.  **Absolute Mimicry:** Do NOT apply your own default style or any pre-conceived aesthetic. Your ONLY source of truth for the visual style is the provided screenshot.
-2.  **Analyze Colors:** Identify the specific color palette from the image. Find the background color, primary brand color, and text color. Use specific color names or approximate hex codes in your output prompt.
-3.  **Analyze Typography:** Observe the text in the screenshot. Is it Serif or Sans-Serif? Is it bold and loud, or thin and elegant? Is it Monospace?
-4.  **Analyze Vibe:** Determine the mood of the site based strictly on the visual evidence. Is it Corporate, Playful, Dark Mode, Minimalist, Grunge, Luxury, or Retro?
-5.  **Analyze UI Patterns:** Look for specific design details: Are corners rounded or sharp? Is the design flat or does it use shadows/gradients? Are there 3D elements or flat line icons?
+INPUT:
+The user will upload/provide an image file (screenshot).
 
-INSTRUCTIONS FOR THE OUTPUT PROMPT:
-1.  **Subject:** Create a visual composition that metaphors the content found in the screenshot.
-2.  **Composition:** Center-weighted or split-screen layout suitable for a 1.91:1 aspect ratio.
-3.  **Style:** Explicitly state the art style derived ONLY from your analysis of the screenshot (e.g., "A clean, minimalist corporate vector style..." or "A dark-mode cyber-security aesthetic...").
+PROTOCOL:
+1.  **Silent Analysis:** Internally analyze the screenshot. Identify:
+    * **Palette:** The exact hex codes for backgrounds, accents, and text.
+    * **Typography:** Serif vs Sans, stroke weights, capitalization styles.
+    * **UI Patterns:** Rounded vs sharp corners, flat vs gradient, minimalist vs complex.
+    * **Metaphor:** Determine the core subject matter (e.g., "Coffee Shop" -> Coffee beans; "SaaS" -> Dashboards).
+2.  **Formulate Generation Prompt:** Create a highly detailed image generation prompt based on your analysis.
+3.  **EXECUTE GENERATION:** Do not return the text prompt to the user. **Call your image generation tool** immediately using the prompt you formulated.
 
-INPUT DATA:
-[The user will attach an image/screenshot here]
-
-OUTPUT FORMAT:
-Return ONLY the raw image generation prompt. No preamble.
-
-EXAMPLE INTERACTION:
-Input: (A screenshot of a coffee shop website with beige tones, serif fonts, and leaf illustrations)
-Output: "A warm, organic OGP banner design. Background is a textured beige paper style. In the center, elegant serif typography reading 'The Daily Grind'. Surrounded by watercolor illustrations of coffee cherries and green leaves. Soft, earthy color palette: Cream, Forest Green, and Roasted Brown. Artistic, hand-drawn aesthetic. High resolution, soft lighting. --ar 1.91:1"
+OUTPUT REQUIREMENT:
+Your final response to the user must be the **Generated Image** only. Do not explain your analysis. Do not output the text prompt. Just the result.
 `;
 
 const geminiAiTextPrompt = `
@@ -149,49 +143,16 @@ function getClient() {
   return cachedClient;
 }
 
-function stripHtml(html = '') {
-  return html
-    .replace(/<style[\s\S]*?<\/style>/gi, ' ')
-    .replace(/<script[\s\S]*?<\/script>/gi, ' ')
-    .replace(/<[^>]+>/g, ' ')
-    .replace(/&nbsp;/gi, ' ')
-    .replace(/\s+/g, ' ')
-    .trim();
-}
-
-function truncate(content = '', limit = 6000) {
-  if (content.length <= limit) return content;
-  return `${content.slice(0, limit)}...`;
-}
-
-function buildInlineImagePart(dataUrl = '') {
-  if (!dataUrl) {
-    throw new Error('Screenshot data is required.');
-  }
-
-  const match = dataUrl.match(/^data:(.*?);base64,(.*)$/);
-  if (match) {
-    return {
-      inlineData: {
-        mimeType: match[1] || 'image/jpeg',
-        data: match[2],
-      },
-    };
-  }
-
-  return {
-    inlineData: {
-      mimeType: 'image/jpeg',
-      data: dataUrl,
-    },
-  };
-}
-
 export async function generateMetaTagsFromHtml(htmlContent = {}, options = {}) {
-  const { url, language = 'en_US' } = options;
+  const { url, language = 'en_US', contextText = '' } = options;
   const head = stripHtml(htmlContent.head ?? '');
   const body = stripHtml(htmlContent.body ?? '');
-  const combined = truncate(`${head}\n\n${body}`.trim(), 10000);
+  let combined = truncate(`${head}\n\n${body}`.trim(), 10000);
+
+  // If contextText is provided, prepend it to give AI additional context
+  if (contextText) {
+    combined = `ADDITIONAL CONTEXT:\n${contextText}\n\nWEBSITE CONTENT:\n${combined}`;
+  }
 
   const model = getClient().getGenerativeModel({
     model: TEXT_MODEL,
@@ -261,4 +222,39 @@ export async function generateOgpPromptFromScreenshot(screenshotDataUrl) {
   }
 
   return promptText.trim();
+}
+
+export async function generateOgpImage(screenshotDataUrl) {
+  if (!screenshotDataUrl) {
+    throw new Error('Screenshot data URL is required.');
+  }
+
+  const model = getClient().getGenerativeModel({
+    model: IMAGE_MODEL,
+    generationConfig: {
+      responseMimeType: 'image/jpeg',
+    },
+  });
+
+  const result = await model.generateContent({
+    contents: [
+      {
+        role: 'user',
+        parts: [
+          { text: nanoBananaPrompt },
+          buildInlineImagePart(screenshotDataUrl),
+        ],
+      },
+    ],
+  });
+
+  const inlineData = result.response?.candidates?.[0]?.content?.parts?.find(
+    (part) => part.inlineData
+  )?.inlineData;
+
+  if (!inlineData) {
+    throw new Error('Gemini did not return an image.');
+  }
+
+  return `data:${inlineData.mimeType};base64,${inlineData.data}`;
 }

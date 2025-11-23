@@ -25,7 +25,7 @@
 
         <!-- Text Content -->
         <text x="60" y="140" font-family="Courier New, monospace" font-weight="900" font-size="100" fill="black"
-            letter-spacing="-4">OGP:BANANA</text>
+            letter-spacing="-4">OG:BANANA</text>
 
         <!-- Subtitle Box -->
         <g transform="translate(60, 180)">
