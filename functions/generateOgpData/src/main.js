@@ -1,4 +1,4 @@
-import { Client, Databases, ID, Permission, Role, Users } from 'node-appwrite';
+import { Client, TablesDB, ID, Permission, Role, Users } from 'node-appwrite';
 import { scrapeWebsite } from './scraper.js';
 import {
   generateMetaTagsFromHtml,
@@ -11,7 +11,6 @@ import {
   GEMINI_LIMIT_MESSAGE,
   isGeminiQuotaError,
 } from './utils.js';
-import { TablesDB } from 'appwrite';
 
 const OG_DATA_DATABASE_ID = process.env.OG_DATA_DATABASE_ID ?? 'og-data';
 const OGP_COLLECTION_ID = process.env.OGP_COLLECTION_ID ?? 'ogp';
