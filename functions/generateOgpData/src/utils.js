@@ -1,3 +1,5 @@
+import { execSync } from 'child_process';
+
 export function stripHtml(html = '') {
   return html
     .replace(/<style[\s\S]*?<\/style>/gi, ' ')
@@ -7,6 +9,29 @@ export function stripHtml(html = '') {
     .replace(/\s+/g, ' ')
     .trim();
 }
+
+export const ensureChromiumAvailable = (log) => {
+  try {
+    log('Verifying Chromium installation...');
+    execSync('chromium-browser --version', { stdio: 'ignore' });
+    log('Chromium is already installed.');
+  } catch {
+    log('Installing Chromium and dependencies...');
+    try {
+      execSync(
+        'apk update && apk add --no-cache chromium nss freetype harfbuzz ca-certificates ttf-freefont',
+        { stdio: 'inherit' }
+      );
+      log('Chromium installed successfully.');
+    } catch (installError) {
+      const message =
+        installError instanceof Error
+          ? installError.message
+          : String(installError);
+      throw new Error(`Chromium installation failed: ${message}`);
+    }
+  }
+};
 
 export function truncate(content = '', limit = 6000) {
   if (content.length <= limit) return content;

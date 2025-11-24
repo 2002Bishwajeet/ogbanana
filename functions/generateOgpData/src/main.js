@@ -2,6 +2,7 @@ import { Client, Users } from 'node-appwrite';
 import { scrapeWebsite } from './scraper.js';
 import { generateMetaTagsFromHtml, generateOgpImage } from './genai.js';
 import { compressOgpImage } from './compressor.js';
+import { ensureChromiumAvailable } from './utils.js';
 
 // This Appwrite function will be executed every time your function is triggered
 export default async ({ req, res, log, error }) => {
@@ -60,6 +61,17 @@ export default async ({ req, res, log, error }) => {
 
       log(`User has ${currentCredits} credits. Processing request...`);
       log(`Processing URL: ${targetUrl}`);
+
+      try {
+        ensureChromiumAvailable(log);
+      } catch (chromiumError) {
+        const message =
+          chromiumError instanceof Error
+            ? chromiumError.message
+            : String(chromiumError);
+        error(message);
+        return res.json({ error: message }, 500);
+      }
 
       // 1. Scrape the website
       log('Scraping website...');

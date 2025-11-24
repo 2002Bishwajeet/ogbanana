@@ -204,7 +204,7 @@ export async function generateOgpImage(screenshotDataUrl) {
     throw new Error('Screenshot data URL is required.');
   }
 
-  const result = await getClient().model.generateContent({
+  const result = await getClient().models.generateContent({
     model: IMAGE_MODEL,
     generationConfig: {
       responseMimeType: 'image/jpeg',
