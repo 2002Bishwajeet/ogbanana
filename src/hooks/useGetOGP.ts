@@ -1,9 +1,10 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import type { Models } from "appwrite";
 import { generateOgpTags } from "../lib/api";
 import { useAuth } from "../context/AuthContext";
 import { type OGPData } from "../lib/types";
+import { AUTH_SESSION_QUERY_KEY } from "../providers/AuthProvider";
 
 type ExecutionStatus = Models.Execution["status"] | "waiting";
 
@@ -11,7 +12,8 @@ export const useGetOGP = () => {
   const [executionStatus, setExecutionStatus] = useState<ExecutionStatus | null>(
     null
   );
-  const { user, setUser } = useAuth();
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
   const mutation = useMutation<
     OGPData,
     Error,
@@ -27,10 +29,8 @@ export const useGetOGP = () => {
       });
       return data as OGPData;
     },
-    onSuccess: (data) => {
-      if (data.creditsRemaining && user) {
-        setUser({ ...user, credits: data.creditsRemaining });
-      }
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: AUTH_SESSION_QUERY_KEY });
     },
     onSettled: () => {
       setExecutionStatus(null);
