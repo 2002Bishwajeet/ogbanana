@@ -145,10 +145,10 @@ export const Generator = memo(() => {
               </div>
               <div className="border-2 border-black p-6 bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,0.1)]">
                 <h4 className="font-bold text-xl truncate text-[#0000EE] underline decoration-4 decoration-[#FFDE00]">
-                  {generatedResult.meta.og["og:title"]}
+                  {generatedResult.meta.social.title}
                 </h4>
                 <p className="text-black text-base mt-2 line-clamp-2 leading-relaxed">
-                  {generatedResult.meta.og["og:description"]}
+                  {generatedResult.meta.social.description}
                 </p>
                 <p className="text-gray-400 text-xs mt-4 font-mono uppercase tracking-widest border-t border-gray-200 pt-2">
                   {new URL(generatedResult.url).hostname}
@@ -180,15 +180,15 @@ export const Generator = memo(() => {
 <!-- Open Graph / Facebook -->
 <meta property="og:type" content="website" />
 <meta property="og:url" content="${generatedResult.url}" />
-<meta property="og:title" content="${generatedResult.meta.og["og:title"]}" />
-<meta property="og:description" content="${generatedResult.meta.og["og:description"]}" />
+<meta property="og:title" content="${generatedResult.meta.social.title}" />
+<meta property="og:description" content="${generatedResult.meta.social.description}" />
 <meta property="og:image" content="${generatedResult.ogpImage}" />
 
 <!-- Twitter -->
-<meta property="twitter:card" content="summary_large_image" />
+<meta property="twitter:card" content="${generatedResult.meta.social.twitter_card}" />
 <meta property="twitter:url" content="${generatedResult.url}" />
-<meta property="twitter:title" content="${generatedResult.meta.twitter["twitter:title"]}" />
-<meta property="twitter:description" content="${generatedResult.meta.twitter["twitter:description"]}" />
+<meta property="twitter:title" content="${generatedResult.meta.social.title}" />
+<meta property="twitter:description" content="${generatedResult.meta.social.description}" />
 <meta property="twitter:image" content="${generatedResult.ogpImage}" />`}
                 </pre>
               </div>

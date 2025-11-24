@@ -13,7 +13,7 @@ export const SocialPreviews = ({ data }: { data: OGPData }) => {
     "twitter" | "facebook" | "whatsapp" | "linkedin"
   >("twitter");
 
-  const { "og:title": title, "og:description": description } = data.meta.og;
+  const { title, description } = data.meta.social;
   const image = data.ogpImage;
   const url = data.url;
 

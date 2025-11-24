@@ -5,35 +5,24 @@ export interface OGPData {
       title: string;
       description: string;
       keywords: string;
-      author: string;
       robots: string;
       canonical: string;
       language: string;
     };
-    og: {
-      "og:title": string;
-      "og:description": string;
-      "og:type": string;
-      "og:url": string;
-      "og:image": string;
-      "og:site_name": string;
-      "og:locale": string;
+    social: {
+      title: string;
+      description: string;
+      site_name: string;
+      twitter_card: string;
+      twitter_handle: string;
     };
-    twitter: {
-      "twitter:card": string;
-      "twitter:site": string;
-      "twitter:creator": string;
-      "twitter:title": string;
-      "twitter:description": string;
-      "twitter:image": string;
+    assets: {
+      theme_color: string;
+      image_url_inference: string;
     };
-    extra: {
-      "theme-color": string;
-      "application-name": string;
-    };
-    meta: {
+    audit: {
       score: number;
-      reasoning: string;
+      missing_elements: string[];
     };
   };
   ogpImage: string | null;
