@@ -1,4 +1,4 @@
-import { GoogleGenerativeAI } from '@google/genai';
+import { GoogleGenAI } from '@google/genai';
 import { stripHtml, truncate, buildInlineImagePart } from './utils.js';
 
 const nanoBananaPrompt = `
@@ -119,9 +119,8 @@ Example Output:
 }
 `;
 
-const TEXT_MODEL = process.env.GEMINI_TEXT_MODEL ?? 'gemini-2.0-pro-exp';
-const IMAGE_MODEL =
-  process.env.GEMINI_IMAGE_MODEL ?? 'gemini-2.0-flash-lite-preview-02-05';
+const TEXT_MODEL = process.env.GEMINI_TEXT_MODEL ?? 'gemini-2.5-pro';
+const IMAGE_MODEL = process.env.GEMINI_IMAGE_MODEL ?? 'gemini-2.5-flash-image';
 const GEMINI_API_KEY =
   process.env.GEMINI_API_KEY ??
   process.env.GOOGLE_API_KEY ??
@@ -137,7 +136,7 @@ function getClient() {
   }
 
   if (!cachedClient) {
-    cachedClient = new GoogleGenerativeAI(GEMINI_API_KEY);
+    cachedClient = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
   }
 
   return cachedClient;
@@ -168,8 +167,10 @@ export async function generateMetaTagsFromHtml(htmlContent = {}, options = {}) {
   if (safeContext) {
     combined = `${safeContext}\n\nWEBSITE CONTENT:\n${combined}`;
   }
+  const client = getClient();
+  const payload = `${geminiAiTextPrompt}\n\nINPUT DATA:\n${combined}\n\nCANONICAL URL: ${url ?? 'unknown'}\nLANGUAGE: ${language}`;
 
-  const model = getClient().getGenerativeModel({
+  const result = await client.models.generateContent({
     model: TEXT_MODEL,
     generationConfig: {
       temperature: 0.25,
@@ -178,11 +179,6 @@ export async function generateMetaTagsFromHtml(htmlContent = {}, options = {}) {
       maxOutputTokens: 1024,
       responseMimeType: 'application/json',
     },
-  });
-
-  const payload = `${geminiAiTextPrompt}\n\nINPUT DATA:\n${combined}\n\nCANONICAL URL: ${url ?? 'unknown'}\nLANGUAGE: ${language}`;
-
-  const result = await model.generateContent({
     contents: [
       {
         role: 'user',
@@ -203,55 +199,16 @@ export async function generateMetaTagsFromHtml(htmlContent = {}, options = {}) {
   }
 }
 
-export async function generateOgpPromptFromScreenshot(screenshotDataUrl) {
-  if (!screenshotDataUrl) {
-    throw new Error('Screenshot data URL is required.');
-  }
-
-  const model = getClient().getGenerativeModel({
-    model: TEXT_MODEL,
-    generationConfig: {
-      temperature: 0.4,
-      topP: 0.95,
-      topK: 64,
-      maxOutputTokens: 512,
-      responseMimeType: 'text/plain',
-    },
-  });
-
-  const result = await model.generateContent({
-    contents: [
-      {
-        role: 'user',
-        parts: [
-          { text: nanoBananaPrompt },
-          buildInlineImagePart(screenshotDataUrl),
-        ],
-      },
-    ],
-  });
-
-  const promptText = result.response?.text?.();
-  if (!promptText) {
-    throw new Error('Gemini did not return an OGP prompt.');
-  }
-
-  return promptText.trim();
-}
-
 export async function generateOgpImage(screenshotDataUrl) {
   if (!screenshotDataUrl) {
     throw new Error('Screenshot data URL is required.');
   }
 
-  const model = getClient().getGenerativeModel({
+  const result = await getClient().model.generateContent({
     model: IMAGE_MODEL,
     generationConfig: {
       responseMimeType: 'image/jpeg',
     },
-  });
-
-  const result = await model.generateContent({
     contents: [
       {
         role: 'user',
