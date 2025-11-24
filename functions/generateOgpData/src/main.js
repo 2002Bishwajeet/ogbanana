@@ -31,7 +31,7 @@ export default async ({ req, res, log, error }) => {
 
     let targetUrl, contextText;
     try {
-      const body = JSON.parse(req.body);
+      const body = JSON.parse(req.bodyText);
       targetUrl = body.targetUrl;
       contextText = body.contextText || '';
     } catch (err) {
