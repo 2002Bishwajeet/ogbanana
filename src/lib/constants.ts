@@ -8,6 +8,6 @@ export const SHADOWS = {
 };
 
 
-export const GITHUB_URL = "https://github.com/2002Bishwajeet/ogpbanana";
+export const GITHUB_URL = "https://github.com/2002Bishwajeet/ogbanana";
 export const TWITTER_URL = "https://twitter.com/biswa_20p";
 export const REPORT_ISSUES_URL = `${GITHUB_URL}/issues`;
