@@ -28,6 +28,9 @@ Behind the scenes, Appwrite cloud functions handle scraping, AI calls, and a cre
 - **`limit-resetter` function** (`functions/limit-resetter`):
   - Scheduled Appwrite function that resets user credits based on plan
   - Supports a simple free vs pro usage model
+- **`createPrefs` function** (`functions/createPrefs`):
+  - Webhook‑style Appwrite function subscribed to `users.*.create`
+  - Seeds every new user with `plan: "free"` and `credits: 5` so the UI has defaults immediately
 
 ## How to Run Locally
 
@@ -55,7 +58,7 @@ Key scripts (from `package.json`):
 
 ### Appwrite Functions
 
-This repo includes two functions referenced in `appwrite.json`:
+This repo includes three functions referenced in `appwrite.json`:
 
 1. **`generateOgpData`** (`functions/generateOgpData`)
 
@@ -81,7 +84,21 @@ This repo includes two functions referenced in `appwrite.json`:
      bun install
      ```
 
-   - Scheduled via `appwrite.json` (e.g. monthly) to reset user limits.
+- Scheduled via `appwrite.json` (e.g. monthly) to reset user limits.
+
+3. **`createPrefs`** (`functions/createPrefs`)
+
+- Runtime: Bun 1.x
+- Entrypoint: `src/main.ts`
+- Install deps:
+
+  ```bash
+  cd functions/createPrefs
+  bun install
+  ```
+
+- Subscribe it to `users.*.create` events so Appwrite calls it whenever an account is created
+- Requires the standard Appwrite env vars (`APPWRITE_FUNCTION_API_ENDPOINT`, `APPWRITE_FUNCTION_PROJECT_ID`) and an admin key sent via `x-appwrite-key` so it can call `users.updatePrefs`
 
 Deploy these from the Appwrite Console or CLI, then update the frontend Appwrite config in `src/lib/appwrite.ts` and constants in `src/lib/constants.ts` as needed.
 

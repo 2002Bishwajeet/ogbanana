@@ -32,6 +32,22 @@
       "entrypoint": "src/main.ts",
       "commands": "bun install",
       "path": "functions/limit-resetter"
+    },
+    {
+      "$id": "perf-create",
+      "name": "createPrefs",
+      "runtime": "bun-1.1",
+      "specification": "s-0.5vcpu-512mb",
+      "execute": ["any"],
+      "events": ["users.*.create"],
+      "scopes": ["users.read", "users.write"],
+      "schedule": "",
+      "timeout": 15,
+      "enabled": true,
+      "logging": true,
+      "entrypoint": "src/main.ts",
+      "commands": "bun install",
+      "path": "functions/createPrefs"
     }
   ]
 }
