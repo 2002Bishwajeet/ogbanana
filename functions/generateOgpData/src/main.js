@@ -89,12 +89,15 @@ export default async ({ req, res, log, error }) => {
       });
 
       log('Success!');
-      return res.json({
-        url: targetUrl,
-        meta: metaTags,
-        ogpImage,
-        creditsRemaining: newCredits,
-      });
+      return res.json(
+        {
+          url: targetUrl,
+          meta: metaTags,
+          ogpImage,
+          creditsRemaining: newCredits,
+        },
+        200
+      );
     } catch (err) {
       error(`Error processing ${targetUrl}: ${err.message}`);
       return res.json({ error: err.message }, 500);
