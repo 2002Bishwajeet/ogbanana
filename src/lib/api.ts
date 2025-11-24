@@ -1,4 +1,4 @@
-import { ExecutionMethod, Query } from "appwrite";
+import { ExecutionMethod } from "appwrite";
 import type { Models } from "appwrite";
 import {
     APPWRITE_FUNCTION_ID_OGP,
@@ -104,8 +104,7 @@ const fetchPersistedExecutionPayload = async (
         const row = await tablesDB.getRow({
             databaseId: APPWRITE_FUNCTION_DATABASE_ID,
             tableId: APPWRITE_FUNCTION_TABLE_ID,
-            rowId: executionId,
-            queries: [Query.equal("executionId", executionId)]
+            rowId: executionId
         });
 
         const encryptedContent =
