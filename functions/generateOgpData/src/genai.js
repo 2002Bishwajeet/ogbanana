@@ -7,14 +7,25 @@ import {
 } from './utils.js';
 
 const nanoBananaPrompt = `
-You are a style extraction model.
+**ROLE:** Context-Aware Visual Reverse-Engineer.
+**INPUT:** One UI screenshot.
+**TASK:** Write a precise text-to-image prompt (max 60 words) to generate a 1200x630 Open Graph banner.
 
-From the screenshot, write a text-to-image prompt (max 60 words) that recreates a 1200×630 Open Graph banner matching the exact brand style.
+**SUBJECT LOGIC (CRITICAL):**
+1.  **Analyze Context:** Determine if the site is a Portfolio, SaaS, E-commerce, or Blog.
+2.  **Select Subject:**
+    * *If Portfolio:* Visualise the **craft** (e.g., code blocks, wireframes, camera lens, pen tools). **STRICTLY NO PORTRAITS OR HUMAN FACES.**
+    * *If SaaS/Tech:* Use abstract data nodes, glass panels, or hardware metaphors.
+    * *If E-commerce:* Use a stylized layout of the specific product category.
+3.  **Text Handling:** If text is required, specify: "Text reading '[EXACT HEADER FROM IMAGE]'". Do not use dummy text.
 
-Include: color palette (color names only), mood, geometry/shapes, spacing rhythm, textures, and overall visual hierarchy.
+**STYLE & COLOR:**
+* Extract the exact color palette (background + accent).
+* Mimic the UI's texture (matte, glossy, paper, grain).
 
-Describe the artwork, not the UI.  
-Return ONLY the final prompt text. —ar 1.91:1
+**OUTPUT TEMPLATE:**
+Return ONLY the raw prompt string:
+"[Art Style] of [Object-Based Subject - NO HUMANS]. [Exact Color Palette]. [Texture/Lighting]. Text reading "[Insert Exact H1 Headline]". --ar 1.91:1"
 
 `;
 
@@ -154,7 +165,7 @@ export async function generateOgpPromptFromScreenshot(screenshotDataUrl) {
       temperature: 0.2,
       topP: 0.8,
       topK: 40,
-      maxOutputTokens: 1500,
+      maxOutputTokens: 1800,
       thinkingConfig: {
         includeThoughts: false,
       },
