@@ -2,7 +2,11 @@ import { Client, Users } from 'node-appwrite';
 import { scrapeWebsite } from './scraper.js';
 import { generateMetaTagsFromHtml, generateOgpImage } from './genai.js';
 import { compressOgpImage } from './compressor.js';
-import { ensureChromiumAvailable } from './utils.js';
+import {
+  ensureChromiumAvailable,
+  GEMINI_LIMIT_MESSAGE,
+  isGeminiQuotaError,
+} from './utils.js';
 
 // This Appwrite function will be executed every time your function is triggered
 export default async ({ req, res, log, error }) => {
@@ -111,8 +115,14 @@ export default async ({ req, res, log, error }) => {
         200
       );
     } catch (err) {
-      error(`Error processing ${targetUrl}: ${err.message}`);
-      return res.json({ error: err.message }, 500);
+      if (isGeminiQuotaError(err)) {
+        error(GEMINI_LIMIT_MESSAGE);
+        return res.json({ error: GEMINI_LIMIT_MESSAGE }, 429);
+      }
+
+      const message = err instanceof Error ? err.message : String(err);
+      error(`Error processing ${targetUrl}: ${message}`);
+      return res.json({ error: message }, 500);
     }
   }
 

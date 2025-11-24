@@ -1,5 +1,66 @@
 import { execSync } from 'child_process';
 
+export const GEMINI_LIMIT_MESSAGE =
+  'Limits Exceed, Contact Developer to fix it';
+
+const normalizeString = (value) =>
+  typeof value === 'string' ? value.toLowerCase() : undefined;
+
+const hasQuotaKeywords = (text) =>
+  typeof text === 'string' &&
+  (text.includes('resource_exhausted') || text.includes('quota exceeded'));
+
+export const isGeminiQuotaError = (err) => {
+  if (!err) return false;
+
+  if (typeof err === 'string') {
+    return hasQuotaKeywords(err.toLowerCase());
+  }
+
+  const numericCandidates = [
+    err.code,
+    err.statusCode,
+    err?.response?.status,
+    err?.response?.data?.code,
+    err?.response?.data?.error?.code,
+    err?.error?.code,
+  ]
+    .map((value) => Number(value))
+    .filter((value) => !Number.isNaN(value));
+
+  if (numericCandidates.some((code) => code === 429)) {
+    return true;
+  }
+
+  const stringCandidates = [
+    err.status,
+    err?.error?.status,
+    err?.response?.data?.error?.status,
+    err.message,
+    err?.response?.data?.error?.message,
+  ]
+    .map((value) => normalizeString(value))
+    .filter(Boolean);
+
+  if (stringCandidates.some(hasQuotaKeywords)) {
+    return true;
+  }
+
+  if (typeof err.message === 'string') {
+    const jsonStart = err.message.indexOf('{');
+    if (jsonStart !== -1) {
+      try {
+        const parsed = JSON.parse(err.message.slice(jsonStart));
+        return isGeminiQuotaError(parsed);
+      } catch {
+        // Ignore parse errors from non-JSON messages
+      }
+    }
+  }
+
+  return false;
+};
+
 export function stripHtml(html = '') {
   return html
     .replace(/<style[\s\S]*?<\/style>/gi, ' ')
