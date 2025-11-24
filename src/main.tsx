@@ -6,7 +6,7 @@ import "./index.css";
 import App from "./App.tsx";
 import { AuthProvider } from "./providers/AuthProvider.tsx";
 import { ToastProvider } from "./providers/ToastProvider.tsx";
-import ErrorBoundary from "./components/ErrorBoundary.tsx";
+import ErrorBoundary from "./components/errorBoundary/ErrorBoundary.tsx";
 
 const queryClient = new QueryClient();
 
