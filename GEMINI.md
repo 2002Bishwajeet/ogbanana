@@ -84,9 +84,9 @@ pnpm run lint
   - **Lazy Loading:** For large pages or components that are not required for the initial render, use `React.lazy` and Suspense to code-split and load them on demand. This improves initial page load performance.
 - **Document Metadata:** The project uses React 19's built-in support for rendering `<title>` and `<meta>` tags. Simply return these elements from your components to manage the document head.
 - **When to Use `useEffect`:** Effects are for synchronizing with external systems. Avoid using `useEffect` for logic that can be handled during rendering or in response to user events. According to the official React documentation, you might not need an Effect if you are:
-    - **Transforming data for rendering:** Calculations and filtering should be done directly in your component's rendering logic. Use `useMemo` to cache expensive calculations.
-    - **Handling user events:** Logic that runs in response to a user action (like a button click) should be placed in the corresponding event handler.
-    - **Updating state based on props or other state (Derived State):** If a value can be computed from existing props or state, calculate it during rendering instead of storing it in a separate state variable.
+  - **Transforming data for rendering:** Calculations and filtering should be done directly in your component's rendering logic. Use `useMemo` to cache expensive calculations.
+  - **Handling user events:** Logic that runs in response to a user action (like a button click) should be placed in the corresponding event handler.
+  - **Updating state based on props or other state (Derived State):** If a value can be computed from existing props or state, calculate it during rendering instead of storing it in a separate state variable.
 - **Styling:** The project uses Tailwind CSS with a custom "Neobrutalism" theme, configured directly within CSS files. UI components like `NeoButton` and `NeoCard` provide a consistent look and feel.
 - **Error Handling:** The application uses a custom `ErrorBoundary` component to catch and handle rendering errors, and `ErrorToast` to display errors to the user.
 - **Serverless Backend:** The backend logic is encapsulated in Appwrite serverless functions, which are independently deployable and scalable.
@@ -96,5 +96,3 @@ pnpm run lint
 ## Reporting Issues
 
 If you encounter any bugs or have suggestions for improvements, please report them on the project's [GitHub Issues page](https://github.com/ogpbanana/ogpbanana/issues).
-
-

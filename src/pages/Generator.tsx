@@ -32,7 +32,7 @@ export const Generator = memo(() => {
         <div>
           <h2 className="text-5xl font-black mb-2 tracking-tight">GENERATOR</h2>
           <p className="font-mono bg-primary inline-block px-2 border border-main font-bold text-sm">
-            MODEL: GEMINI-2.5-FLASH
+            MODEL: GEMINI-2.5-PRO
           </p>
         </div>
         <div className="text-right font-mono text-sm leading-loose">
