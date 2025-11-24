@@ -22,97 +22,42 @@ Return **ONLY** the raw prompt string. Use the following structure for the promp
 `;
 
 const geminiAiTextPrompt = `
-You are an elite Technical SEO Architect and Metadata Strategist.
+**ROLE:** Technical SEO & Metadata Engine.
+**INPUT:** Raw website text or HTML.
+**TASK:** Extract context to generate a high-performance SEO & Social Metadata JSON object.
 
-YOUR GOAL:
-You will be fed the raw text content or HTML of a webpage. Your mission is to analyze this content and synthesize a comprehensive, "God Mode" suite of SEO, Open Graph, and Twitter Card metadata. You must maximize search visibility, social sharing click-through rates, and technical compliance.
+**OPERATIONAL RULES:**
+1.  **Search Intent (Standard):** Title must be <60 chars, keyword-first. Description must be <160 chars, informational.
+2.  **Social Intent (OG/Twitter):** Title must be punchy/emotional (click-bait safe). Description must trigger FOMO or curiosity.
+3.  **Inference:** If specific data (URLs, handles) is missing, use logical placeholders (e.g., "https://example.com") or infer from brand name.
+4.  **Aesthetics:** Infer "theme-color" from the described brand vibe (e.g., Eco = #228B22).
 
-INPUT DATA:
-[The user will provide website text/HTML here]
+**OUTPUT FORMAT:**
+Return ONLY a valid, minified JSON object matching this schema:
 
-STRICT OUTPUT RULES:
-1.  **Deep Analysis:** Identify the core value proposition, target audience, and primary keywords.
-2.  **Title Strategy:** Create a title (50-60 chars) that is high-converting and keyword-rich.
-3.  **Description Strategy:** Create a description (150-160 chars) that acts as a pitch for the page.
-4.  **Coverage:** You must generate tags for Standard HTML, Open Graph (Facebook/LinkedIn), and Twitter/X Cards.
-5.  **Format:** Return ONLY valid JSON. No markdown formatting, no conversational filler.
-
-JSON SCHEMA (Strictly follow this structure):
 {
   "standard": {
-    "title": "String (Max 60 chars)",
-    "description": "String (Max 160 chars)",
-    "keywords": "String (Comma separated list of 8-10 high-value keywords)",
-    "author": "String (Brand or Person name)",
+    "title": "String (SEO optimized, | separator)",
+    "description": "String (Search snippet optimized)",
+    "keywords": "String (8-10 comma-separated)",
     "robots": "index, follow",
-    "canonical": "String (The base URL provided or inferred)",
-    "language": "String (e.g., 'en_US')"
+    "canonical": "String (URL)",
+    "language": "String (e.g. en_US)"
   },
-  "og": {
-    "og:title": "String (Optimized for social, can be slightly punchier than standard title)",
-    "og:description": "String (Optimized for social click-throughs)",
-    "og:type": "website",
-    "og:url": "String (The canonical URL)",
-    "og:image": "String (Placeholder URL or inferred image URL)",
-    "og:site_name": "String (Brand Name)",
-    "og:locale": "en_US"
+  "social": {
+    "title": "String (Hook/Benefit focused)",
+    "description": "String (Action oriented)",
+    "site_name": "String",
+    "twitter_card": "summary_large_image",
+    "twitter_handle": "String (or @brand if unknown)"
   },
-  "twitter": {
-    "twitter:card": "summary_large_image",
-    "twitter:site": "String (@username)",
-    "twitter:creator": "String (@username)",
-    "twitter:title": "String (Same as og:title)",
-    "twitter:description": "String (Same as og:description)",
-    "twitter:image": "String (Same as og:image)"
+  "assets": {
+    "theme_color": "String (Hex)",
+    "image_url_inference": "String (Describe the ideal image subject)"
   },
-  "extra": {
-    "theme-color": "String (Hex code inferred from brand description e.g., #000000)",
-    "application-name": "String"
-  },
-  "meta": {
-    "score": 95,
-    "reasoning": "String (Brief explanation of why these tags were chosen)"
-  }
-}
-
-Example Input:
-"Nano Banana is a tool that generates OGP tags using AI. It uses a neo-brutalist design."
-
-Example Output:
-{
-  "standard": {
-    "title": "Nano Banana | AI-Powered OGP Tag Generator",
-    "description": "Boost your CTR with Nano Banana. The ultimate AI tool for generating optimized Open Graph meta tags and preview images in seconds.",
-    "keywords": "ogp generator, meta tags, seo tool, ai seo, open graph, twitter cards, website preview",
-    "author": "Nano Banana",
-    "robots": "index, follow",
-    "canonical": "https://nanobanana.app",
-    "language": "en_US"
-  },
-  "og": {
-    "og:title": "Generate Perfect OGP Tags with AI",
-    "og:description": "Stop posting boring links. Nano Banana uses AI to create high-converting meta tags and images for your website.",
-    "og:type": "website",
-    "og:url": "https://nanobanana.app",
-    "og:image": "https://nanobanana.app/og-image.jpg",
-    "og:site_name": "Nano Banana",
-    "og:locale": "en_US"
-  },
-  "twitter": {
-    "twitter:card": "summary_large_image",
-    "twitter:site": "@nanobanana",
-    "twitter:creator": "@nanobanana",
-    "twitter:title": "Generate Perfect OGP Tags with AI",
-    "twitter:description": "Stop posting boring links. Nano Banana uses AI to create high-converting meta tags and images for your website.",
-    "twitter:image": "https://nanobanana.app/og-image.jpg"
-  },
-  "extra": {
-    "theme-color": "#FFDE00",
-    "application-name": "Nano Banana"
-  },
-  "meta": {
-    "score": 98,
-    "reasoning": "Focused on 'AI' and 'Generator' keywords while using an active voice to drive clicks."
+  "audit": {
+    "score": Number (0-100),
+    "missing_elements": ["String"]
   }
 }
 `;
@@ -166,16 +111,19 @@ export async function generateMetaTagsFromHtml(htmlContent = {}, options = {}) {
     combined = `${safeContext}\n\nWEBSITE CONTENT:\n${combined}`;
   }
   const client = getClient();
-  const payload = `${geminiAiTextPrompt}\n\nINPUT DATA:\n${combined}\n\nCANONICAL URL: ${url ?? 'unknown'}\nLANGUAGE: ${language}`;
+  const payload = `INPUT DATA:\n${combined}\n\nCANONICAL URL: ${url ?? 'unknown'}\nLANGUAGE: ${language}`;
 
   const result = await client.models.generateContent({
     model: TEXT_MODEL,
-    generationConfig: {
+    config: {
       temperature: 0.25,
       topP: 0.9,
       topK: 40,
       maxOutputTokens: 1024,
       responseMimeType: 'application/json',
+      systemInstruction: {
+        parts: [{ text: geminiAiTextPrompt }],
+      },
     },
     contents: [
       {
@@ -185,7 +133,7 @@ export async function generateMetaTagsFromHtml(htmlContent = {}, options = {}) {
     ],
   });
 
-  const rawText = result.response?.text?.();
+  const rawText = result.text?.();
   if (!rawText) {
     throw new Error('Gemini did not return metadata text.');
   }
@@ -204,7 +152,7 @@ export async function generateOgpPromptFromScreenshot(screenshotDataUrl) {
 
   const result = await getClient().models.generateContent({
     model: TEXT_MODEL,
-    generationConfig: {
+    config: {
       temperature: 0.2,
       topP: 0.8,
       topK: 40,
@@ -221,13 +169,13 @@ export async function generateOgpPromptFromScreenshot(screenshotDataUrl) {
     ],
   });
 
-  const promptText = result.response?.text?.()?.trim();
+  const promptText = result.text?.()?.trim();
 
   if (promptText) {
     return promptText;
   }
 
-  const fallback = result.response?.candidates?.[0]?.content?.parts
+  const fallback = result?.candidates?.[0]?.content?.parts
     ?.map((part) => part.text)
     .filter(Boolean)
     .join(' ')
@@ -251,7 +199,9 @@ export async function generateOgpImage(prompt) {
     const imageResult = await client.models.generateImage({
       model: IMAGE_MODEL,
       prompt,
-      mimeType: 'image/jpeg',
+      config: {
+        responseMimeType: 'image/jpeg',
+      },
     });
 
     const inlineData = imageResult.images?.find(
@@ -273,7 +223,7 @@ export async function generateOgpImage(prompt) {
     if (err instanceof TypeError || err?.code === 'FUNCTION_NOT_IMPLEMENTED') {
       const fallbackResult = await client.models.generateContent({
         model: IMAGE_MODEL,
-        generationConfig: {
+        config: {
           responseMimeType: 'image/jpeg',
         },
         contents: [
@@ -284,10 +234,9 @@ export async function generateOgpImage(prompt) {
         ],
       });
 
-      const inlineData =
-        fallbackResult.response?.candidates?.[0]?.content?.parts?.find(
-          (part) => part.inlineData
-        )?.inlineData;
+      const inlineData = fallbackResult?.candidates?.[0]?.content?.parts?.find(
+        (part) => part.inlineData
+      )?.inlineData;
 
       if (inlineData?.data) {
         const mimeType = inlineData.mimeType || 'image/jpeg';
