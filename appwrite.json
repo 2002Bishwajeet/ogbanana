@@ -4,7 +4,7 @@
     {
       "$id": "gen-ogp",
       "name": "generateOgpData",
-      "runtime": "node-18.0",
+      "runtime": "node-22",
       "specification": "s-1vcpu-1gb",
       "execute": ["any"],
       "events": [],
