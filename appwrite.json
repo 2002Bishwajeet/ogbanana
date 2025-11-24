@@ -10,7 +10,7 @@
       "events": [],
       "scopes": ["users.read", "users.write"],
       "schedule": "",
-      "timeout": 15,
+      "timeout": 900,
       "enabled": true,
       "logging": true,
       "entrypoint": "src/main.js",

@@ -1,6 +1,10 @@
 import { Client, Users } from 'node-appwrite';
 import { scrapeWebsite } from './scraper.js';
-import { generateMetaTagsFromHtml, generateOgpImage } from './genai.js';
+import {
+  generateMetaTagsFromHtml,
+  generateOgpPromptFromScreenshot,
+  generateOgpImage,
+} from './genai.js';
 import { compressOgpImage } from './compressor.js';
 import {
   ensureChromiumAvailable,
@@ -82,12 +86,24 @@ export default async ({ req, res, log, error }) => {
       const scrapeResult = await scrapeWebsite(targetUrl);
       const { content, screenshot } = scrapeResult;
 
-      // 2 & 3. Parallelize Meta Tags generation and OGP Image generation
-      log('Generating meta tags and OGP image in parallel...');
-      const [metaTags, rawOgpImage] = await Promise.all([
-        generateMetaTagsFromHtml(content, { url: targetUrl, contextText }),
-        screenshot ? generateOgpImage(screenshot) : Promise.resolve(null),
-      ]);
+      // 2. Generate meta tags in parallel with Nano Banana prompt derivation
+      log('Generating meta tags and Nano Banana prompt...');
+      const metaTags = await generateMetaTagsFromHtml(content, {
+        url: targetUrl,
+        contextText,
+      });
+
+      let ogpPrompt = null;
+      if (screenshot) {
+        ogpPrompt = await generateOgpPromptFromScreenshot(screenshot);
+      }
+
+      // 3. Generate image if a prompt exists
+      let rawOgpImage = null;
+      if (ogpPrompt) {
+        log('Generating OGP image from Nano Banana prompt...');
+        rawOgpImage = await generateOgpImage(ogpPrompt);
+      }
 
       // 4. Compress the generated image (if exists)
       let ogpImage = null;
