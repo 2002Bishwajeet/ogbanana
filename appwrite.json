@@ -25,7 +25,7 @@
       "execute": ["any"],
       "events": [],
       "scopes": ["users.read"],
-      "schedule": "",
+      "schedule": "0 0 1 * *",
       "timeout": 15,
       "enabled": true,
       "logging": true,

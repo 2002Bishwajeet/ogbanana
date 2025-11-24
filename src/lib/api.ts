@@ -1,29 +1,28 @@
+import { ExecutionMethod } from "appwrite";
 import { APPWRITE_FUNCTION_ID_OGP, functions } from "./appwrite";
+import type { OGPData } from "./types";
 
-interface OGPGenerationResult {
-    title: string;
-    description: string;
-    image: string;
-    url: string;
-}
 
-export const generateOgpTags = async (url: string, context: string): Promise<OGPGenerationResult> => {
+export const generateOgpTags = async (url: string, context: string): Promise<OGPData> => {
     try {
         const execution = await functions.createExecution(
-            APPWRITE_FUNCTION_ID_OGP,
-            JSON.stringify({ url, context }),
-            false, // async
-            '/',   // path
-            'POST', // method
-            { 'Content-Type': 'application/json' }
+            {
+
+                functionId: APPWRITE_FUNCTION_ID_OGP,
+                body: JSON.stringify({ url, context }),
+                async: false,
+                xpath: '/meta',
+                method: ExecutionMethod.POST,
+                headers: { 'Content-Type': 'application/json' }
+            }
         );
 
         if (execution.status === 'failed') {
-            throw new Error(execution.stderr || 'Appwrite function execution failed');
+            throw new Error(execution.errors || 'Appwrite function execution failed');
         }
 
         const result = JSON.parse(execution.responseBody);
-        return result as OGPGenerationResult;
+        return result as OGPData;
 
     } catch (error: any) {
         console.error("Error calling Appwrite OGP function:", error);

@@ -6,20 +6,18 @@ import {
   Twitter,
 } from "lucide-react";
 import { useState } from "react";
+import { type OGPData } from "../../lib/types";
 
-export interface OGData {
-  title: string;
-  description: string;
-  image: string;
-  url: string;
-}
-
-export const SocialPreviews = ({ data }: { data: OGData }) => {
+export const SocialPreviews = ({ data }: { data: OGPData }) => {
   const [activeTab, setActiveTab] = useState<
     "twitter" | "facebook" | "whatsapp" | "linkedin"
   >("twitter");
 
-  const hostname = new URL(data.url).hostname;
+  const { "og:title": title, "og:description": description } = data.meta.og;
+  const image = data.ogpImage;
+  const url = data.url;
+
+  const hostname = new URL(url).hostname;
   const platforms = [
     {
       id: "twitter",
@@ -39,7 +37,7 @@ export const SocialPreviews = ({ data }: { data: OGData }) => {
     <div className="flex flex-col gap-4 animate-in fade-in slide-in-from-bottom-8 duration-500 delay-100">
       <div className="bg-black text-white p-3 font-bold border-2 border-black flex justify-between tracking-wider">
         <span>PLATFORM SIMULATION</span>
-        <span className="text-[#FFDE00] flex items-center gap-2">
+        <span className="text-primary flex items-center gap-2">
           <Smartphone size={16} /> LIVE PREVIEW
         </span>
       </div>
@@ -81,7 +79,7 @@ export const SocialPreviews = ({ data }: { data: OGData }) => {
             <div className="w-full max-w-[500px] bg-black text-white rounded-2xl overflow-hidden border border-gray-800 font-sans shadow-xl">
               <div className="relative aspect-[1.91/1] w-full overflow-hidden bg-gray-900">
                 <img
-                  src={data.image}
+                  src={image ?? ""}
                   alt="OG"
                   className="w-full h-full object-cover"
                 />
@@ -91,10 +89,10 @@ export const SocialPreviews = ({ data }: { data: OGData }) => {
               </div>
               <div className="p-3">
                 <div className="text-[#e7e9ea] text-sm mb-0.5 truncate">
-                  {data.url}
+                  {url}
                 </div>
                 <div className="text-[#e7e9ea] font-normal leading-tight">
-                  {data.title}
+                  {title}
                 </div>
               </div>
             </div>
@@ -105,7 +103,7 @@ export const SocialPreviews = ({ data }: { data: OGData }) => {
             <div className="w-full max-w-[500px] bg-white rounded-lg overflow-hidden border border-gray-300 font-sans shadow-md">
               <div className="aspect-[1.91/1] w-full overflow-hidden bg-gray-100">
                 <img
-                  src={data.image}
+                  src={image ?? ""}
                   alt="OG"
                   className="w-full h-full object-cover"
                 />
@@ -115,10 +113,10 @@ export const SocialPreviews = ({ data }: { data: OGData }) => {
                   {hostname}
                 </div>
                 <div className="text-[#050505] font-bold text-[16px] leading-tight mb-1">
-                  {data.title}
+                  {title}
                 </div>
                 <div className="text-[#65676B] text-[14px] line-clamp-1">
-                  {data.description}
+                  {description}
                 </div>
               </div>
             </div>
@@ -132,22 +130,22 @@ export const SocialPreviews = ({ data }: { data: OGData }) => {
 
               <div className="bg-[#F0F0F0] rounded overflow-hidden mb-1 border-l-4 border-gray-400">
                 <div className="bg-gray-200 text-black px-2 py-1 text-xs truncate opacity-70">
-                  {data.url}
+                  {url}
                 </div>
                 <div className="flex bg-[#F7F7F7]">
                   <div className="w-20 h-20 shrink-0 bg-gray-300">
                     <img
-                      src={data.image}
+                      src={image ?? ""}
                       alt="thumb"
                       className="w-full h-full object-cover"
                     />
                   </div>
                   <div className="p-2 flex flex-col justify-center min-w-0">
                     <div className="font-bold text-sm leading-tight text-black line-clamp-2">
-                      {data.title}
+                      {title}
                     </div>
                     <div className="text-xs text-gray-500 leading-tight mt-1 line-clamp-1">
-                      {data.description}
+                      {description}
                     </div>
                   </div>
                 </div>
@@ -166,14 +164,14 @@ export const SocialPreviews = ({ data }: { data: OGData }) => {
             <div className="w-full max-w-[500px] bg-white rounded-lg overflow-hidden border border-gray-300 font-sans shadow-sm">
               <div className="aspect-[1.91/1] w-full overflow-hidden bg-gray-100">
                 <img
-                  src={data.image}
+                  src={image ?? ""}
                   alt="OG"
                   className="w-full h-full object-cover"
                 />
               </div>
               <div className="p-3 bg-white">
                 <div className="text-[#000000E6] font-semibold text-[16px] leading-tight mb-1">
-                  {data.title}
+                  {title}
                 </div>
                 <div className="text-[#00000099] text-[12px] truncate">
                   {hostname}

@@ -1,5 +1,5 @@
 import React, { memo, useState, useEffect } from "react";
-import { X, Chrome } from "lucide-react";
+import { X, Chrome, Github } from "lucide-react";
 import { NeoButton } from "../ui/NeoButton";
 import { NeoCard } from "../ui/NeoCard";
 import { AppwriteException, OAuthProvider } from "appwrite";
@@ -45,6 +45,19 @@ export const AuthModal = memo(({ isOpen, onClose }: AuthModalProps) => {
     } catch (e) {
       console.error("Google login error:", e);
       toast.addToast("Google login failed. Please try again.", "error");
+    }
+  };
+
+  const handleGithubLogin = async () => {
+    try {
+      account.createOAuth2Session({
+        provider: OAuthProvider.Github,
+        success: window.location.href, // success
+        failure: `${window.location.origin}/error`, // failure
+      });
+    } catch (e) {
+      console.error("GitHub login error:", e);
+      toast.addToast("GitHub login failed. Please try again.", "error");
     }
   };
 
@@ -203,6 +216,15 @@ export const AuthModal = memo(({ isOpen, onClose }: AuthModalProps) => {
               className="w-full flex items-center justify-center gap-3"
             >
               <Chrome size={20} /> CONTINUE WITH GOOGLE
+            </NeoButton>
+
+            <NeoButton
+              type="button"
+              variant="secondary"
+              onClick={handleGithubLogin}
+              className="w-full flex items-center justify-center gap-3"
+            >
+              <Github size={20} /> CONTINUE WITH GITHUB
             </NeoButton>
           </form>
         </NeoCard>

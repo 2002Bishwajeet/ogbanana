@@ -4,6 +4,7 @@ import { Check, X, Zap, Database, Lock } from "lucide-react";
 import { NeoButton } from "../components/ui/NeoButton";
 import { NeoCard } from "../components/ui/NeoCard";
 import { useNavigate } from "react-router";
+import appwrite from "../assets/appwrite.svg";
 
 export const Pricing = memo(() => {
   const navigate = useNavigate();
@@ -71,7 +72,7 @@ export const Pricing = memo(() => {
             <div className="bg-black/20 w-full h-6 mb-8 border-2 border-black"></div>
             <h3 className="text-4xl font-black mb-2 uppercase">Pro Banana</h3>
             <div className="text-6xl font-black mb-8">
-              $19<span className="text-xl font-normal text-white/80">/mo</span>
+              $9<span className="text-xl font-normal text-white/80">/mo</span>
             </div>
             <p className="font-mono mb-8 min-h-12 text-white/90">
               For agencies and heavy shippers.
@@ -112,7 +113,7 @@ export const Pricing = memo(() => {
         <div className="flex items-center gap-6">
           <div className="bg-white p-5 border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
             <img
-              src="/appwrite.svg"
+              src={appwrite}
               alt="Appwrite logo"
               className="w-20 h-auto"
               loading="lazy"

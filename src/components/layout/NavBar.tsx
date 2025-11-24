@@ -54,7 +54,7 @@ export const NavBar = memo(({ user, onOpenAuth, onLogout }: NavBarProps) => {
     {
       label: "COSTS",
       path: "/pricing",
-      hoverClass: "hover:bg-[#23A094] hover:text-white",
+      hoverClass: "hover:bg-accent hover:text-white",
     },
   ];
 

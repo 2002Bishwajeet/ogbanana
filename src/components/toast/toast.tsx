@@ -4,7 +4,7 @@ import type { Toast } from "../../context/ToastContext";
 
 const TOAST_STYLES = {
   success: {
-    bg: "bg-[#23A094]", // Teal
+    bg: "bg-accent", // Teal
     text: "text-white",
     icon: (
       <Check
