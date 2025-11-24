@@ -1,6 +1,12 @@
-import { ExecutionMethod } from "appwrite";
+import { ExecutionMethod, Query } from "appwrite";
 import type { Models } from "appwrite";
-import { APPWRITE_FUNCTION_ID_OGP, functions } from "./appwrite";
+import {
+    APPWRITE_FUNCTION_ID_OGP,
+    APPWRITE_FUNCTION_DATABASE_ID,
+    APPWRITE_FUNCTION_TABLE_ID,
+    functions,
+    tablesDB,
+} from "./appwrite";
 import type { OGPData } from "./types";
 
 const EXECUTION_POLL_INTERVAL_MS = 10_000;
@@ -39,7 +45,7 @@ const waitForExecutionCompletion = (
             if (isChecking) return;
             isChecking = true;
             try {
-                const execution = await functions.getExecution(functionId, executionId);
+                const execution = await functions.getExecution({ functionId, executionId });
                 onStatusChange?.(execution.status);
 
                 if (execution.status === "failed") {
@@ -80,6 +86,56 @@ const waitForExecutionCompletion = (
     });
 };
 
+type PersistedExecutionPayload = Partial<OGPData> & {
+    meta?: OGPData["meta"];
+    url?: string;
+    ogpImage?: string | null;
+    creditsRemaining?: number;
+};
+
+const fetchPersistedExecutionPayload = async (
+    executionId: string
+): Promise<PersistedExecutionPayload | null> => {
+    if (!APPWRITE_FUNCTION_DATABASE_ID || !APPWRITE_FUNCTION_TABLE_ID) {
+        return null;
+    }
+
+    try {
+        const row = await tablesDB.getRow({
+            databaseId: APPWRITE_FUNCTION_DATABASE_ID,
+            tableId: APPWRITE_FUNCTION_TABLE_ID,
+            rowId: executionId,
+            queries: [Query.equal("executionId", executionId)]
+        });
+
+        const encryptedContent =
+            typeof row?.data?.encryptedContent === "string"
+                ? row.data.encryptedContent
+                : typeof (row as Record<string, unknown>).encryptedContent === "string"
+                    ? (row as Record<string, string>).encryptedContent
+                    : null;
+
+        if (!encryptedContent) {
+            return null;
+        }
+
+        return JSON.parse(encryptedContent);
+    } catch (err) {
+        console.warn("Unable to fetch persisted OGP payload:", err);
+        return null;
+    }
+};
+
+const safeParseJson = (maybeJson?: string | null) => {
+    if (!maybeJson) return null;
+    try {
+        return JSON.parse(maybeJson);
+    } catch (err) {
+        console.warn("Unable to parse JSON payload:", err);
+        return null;
+    }
+};
+
 export const generateOgpTags = async (
     url: string,
     context: string,
@@ -110,15 +166,26 @@ export const generateOgpTags = async (
             );
         }
         console.log('Appwrite function completed successfully.', completedExecution);
-        const result = completedExecution.responseBody
-            ? JSON.parse(completedExecution.responseBody)
-            : null;
 
-        if (!result) {
+        const persistedPayload = await fetchPersistedExecutionPayload(execution.$id);
+
+        const responsePayload = safeParseJson(completedExecution.responseBody ?? null);
+
+        const mergedPayload = (() => {
+            if (persistedPayload && responsePayload) {
+                return {
+                    ...persistedPayload,
+                    creditsRemaining: responsePayload.creditsRemaining,
+                } as PersistedExecutionPayload;
+            }
+            return (persistedPayload || responsePayload) as PersistedExecutionPayload | null;
+        })();
+
+        if (!mergedPayload) {
             throw new Error("Appwrite function did not return any data");
         }
 
-        return result as OGPData;
+        return mergedPayload as OGPData;
     } catch (error: unknown) {
         console.error("Error calling Appwrite OGP function:", error);
         const message = error instanceof Error ? error.message : String(error);

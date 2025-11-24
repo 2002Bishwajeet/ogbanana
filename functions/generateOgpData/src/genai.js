@@ -154,7 +154,7 @@ export async function generateOgpPromptFromScreenshot(screenshotDataUrl) {
       temperature: 0.2,
       topP: 0.8,
       topK: 40,
-      maxOutputTokens: 1024,
+      maxOutputTokens: 1500,
       thinkingConfig: {
         includeThoughts: false,
       },

@@ -1,4 +1,4 @@
-import { Client, Users } from 'node-appwrite';
+import { Client, Databases, ID, Permission, Role, Users } from 'node-appwrite';
 import { scrapeWebsite } from './scraper.js';
 import {
   generateMetaTagsFromHtml,
@@ -11,6 +11,10 @@ import {
   GEMINI_LIMIT_MESSAGE,
   isGeminiQuotaError,
 } from './utils.js';
+import { TablesDB } from 'appwrite';
+
+const OG_DATA_DATABASE_ID = process.env.OG_DATA_DATABASE_ID ?? 'og-data';
+const OGP_COLLECTION_ID = process.env.OGP_COLLECTION_ID ?? 'ogp';
 
 // This Appwrite function will be executed every time your function is triggered
 export default async ({ req, res, log, error }) => {
@@ -20,6 +24,7 @@ export default async ({ req, res, log, error }) => {
     .setKey(req.headers['x-appwrite-key'] ?? '');
 
   const users = new Users(client);
+  const tablesDB = new TablesDB(client);
 
   // Handle /ping path (GET)
   if (req.path === '/ping') {
@@ -37,6 +42,7 @@ export default async ({ req, res, log, error }) => {
     if (!userId) {
       return res.json({ error: 'Unauthorized. User ID is required.' }, 401);
     }
+    const executionId = req.headers['x-appwrite-execution-id'];
 
     let targetUrl, contextText;
     try {
@@ -114,6 +120,35 @@ export default async ({ req, res, log, error }) => {
         ogpImage = await compressOgpImage(rawOgpImage);
       }
 
+      if (OG_DATA_DATABASE_ID && OGP_COLLECTION_ID) {
+        const encryptedContent = JSON.stringify({
+          url: targetUrl,
+          meta: metaTags,
+          ogpImage,
+        });
+
+        const documentId = executionId ?? ID.unique();
+        const permissions = [Permission.read(Role.user(userId))];
+
+        try {
+          log(`Persisting OGP payload in collection ${OGP_COLLECTION_ID}...`);
+          await tablesDB.createRow({
+            databaseId: OG_DATA_DATABASE_ID,
+            tableId: OGP_COLLECTION_ID,
+            rowId: documentId,
+            data: {
+              executionId: executionId ?? null,
+              encryptedContent,
+            },
+            permissions: permissions,
+          });
+        } catch (dbError) {
+          const dbMessage =
+            dbError instanceof Error ? dbError.message : String(dbError);
+          error(`Failed to save OGP payload: ${dbMessage}`);
+        }
+      }
+
       // 5. Deduct credit after successful processing
       const newCredits = Math.max(0, currentCredits - 1);
       log(`Deducting 1 credit. New balance: ${newCredits}`);
@@ -123,6 +158,8 @@ export default async ({ req, res, log, error }) => {
       });
 
       log('Success!');
+      /// TODO(Biswa): Since this is not returned when the function is executed asynchronously, we have to store it in the database.
+      /// Alternatively, make it E2E encrypted and then store in the future
       return res.json(
         {
           url: targetUrl,
