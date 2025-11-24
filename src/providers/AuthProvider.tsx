@@ -17,7 +17,7 @@ const mapAppwriteUser = (user: Models.User<ExtendedPreferences>): User => ({
   email: user.email,
   $id: user.$id,
   plan: user.prefs?.plan || "free",
-  credits: user.prefs?.credits || 5,
+  credits: Number(user.prefs?.credits || 0),
 });
 
 const fetchCurrentUser = async (): Promise<User | null> => {

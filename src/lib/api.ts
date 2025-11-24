@@ -164,7 +164,6 @@ export const generateOgpTags = async (
                 `Appwrite function returned status ${completedExecution.responseStatusCode}: ${errorResponse?.error}`
             );
         }
-        console.log('Appwrite function completed successfully.', completedExecution);
 
         const persistedPayload = await fetchPersistedExecutionPayload(execution.$id);
 
