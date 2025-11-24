@@ -89,7 +89,7 @@ class ErrorBoundary extends Component<Props, State> {
                 <div className="flex flex-col md:flex-row gap-4">
                   <button
                     onClick={this.handleReload}
-                    className="flex-1 bg-accent text-white border-2 border-black px-6 py-4 font-black text-lg flex items-center justify-center gap-3 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] transition-all active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
+                    className="flex-1 bg-accent text-white border-2 border-black px-6 py-4 font-black text-lg flex items-center justify-center gap-3 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] transition-all active:translate-x-0.5 active:translate-y-0.5 active:shadow-none"
                   >
                     <RefreshCw size={24} className="stroke-[3px]" />
                     REBOOT SYSTEM
@@ -97,7 +97,7 @@ class ErrorBoundary extends Component<Props, State> {
 
                   <button
                     onClick={this.handleGoHome}
-                    className="flex-1 bg-white text-black border-2 border-black px-6 py-4 font-black text-lg flex items-center justify-center gap-3 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-gray-50 hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] transition-all active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
+                    className="flex-1 bg-white text-black border-2 border-black px-6 py-4 font-black text-lg flex items-center justify-center gap-3 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-gray-50 hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] transition-all active:translate-x-0.5 active:translate-y-0.5 active:shadow-none"
                   >
                     <Home size={24} className="stroke-[3px]" />
                     EMERGENCY EXIT
