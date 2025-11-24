@@ -1,5 +1,4 @@
 import { memo } from "react";
-import { Helmet } from "react-helmet-async";
 import { Code, Image as ImageIcon, Cpu } from "lucide-react";
 import { NeoButton } from "../components/ui/NeoButton";
 
@@ -112,13 +111,11 @@ const HowItWorks = memo(() => (
 
 export const Home = () => (
   <>
-    <Helmet>
-      <title>OG:BANANA - Feed the Algorithm</title>
-      <meta
-        name="description"
-        content="Generate perfect Open Graph tags and images for your website using AI."
-      />
-    </Helmet>
+    <title>OG:BANANA - Feed the Algorithm</title>
+    <meta
+      name="description"
+      content="Generate perfect Open Graph tags and images for your website using AI."
+    />
     <Hero />
     <HowItWorks />
     <div className="bg-primary border-y-4 border-main py-6 overflow-hidden whitespace-nowrap relative">

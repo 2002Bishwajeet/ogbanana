@@ -78,6 +78,7 @@ pnpm run lint
 - **Performance Optimization:**
   - **`useTransition`:** For updates that might cause a noticeable lag in the UI (e.g., filtering a large list), use the `useTransition` hook to keep the interface responsive.
   - **Lazy Loading:** For large pages or components that are not required for the initial render, use `React.lazy` and Suspense to code-split and load them on demand. This improves initial page load performance.
+- **Document Metadata:** The project uses React 19's built-in support for rendering `<title>` and `<meta>` tags. Simply return these elements from your components to manage the document head.
 - **When to Use `useEffect`:** Effects are for synchronizing with external systems. Avoid using `useEffect` for logic that can be handled during rendering or in response to user events. According to the official React documentation, you might not need an Effect if you are:
     - **Transforming data for rendering:** Calculations and filtering should be done directly in your component's rendering logic. Use `useMemo` to cache expensive calculations.
     - **Handling user events:** Logic that runs in response to a user action (like a button click) should be placed in the corresponding event handler.
