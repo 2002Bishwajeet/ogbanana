@@ -169,3 +169,7 @@ export function needsBrowserRender(html, bodyLooksEmpty, extractSection) {
   if (JS_HINT_PATTERNS.some((pattern) => pattern.test(lowered))) return true;
   return bodyLooksEmpty(html, extractSection);
 }
+
+export function bytesToBase64(bytes) {
+  return Buffer.from(bytes).toString('base64');
+}

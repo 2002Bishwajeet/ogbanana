@@ -16,43 +16,18 @@ export const Generator = memo(() => {
     data: generatedResult,
     isPending: isProcessing,
     error,
-    reset,
   } = useGetOGP();
 
   // Generator State
   const [urlInput, setUrlInput] = useState("");
   const [contextInput, setContextInput] = useState("");
-  const [hasAcknowledgedResults, setHasAcknowledgedResults] = useState(false);
 
   const handleGenerateAI = () => {
-    setHasAcknowledgedResults(false);
     generate({ urlInput, contextInput });
   };
 
-  const handleShowResults = () => {
-    setHasAcknowledgedResults(true);
-  };
-
-  const handleCancelLoader = () => {
-    setHasAcknowledgedResults(true);
-    reset();
-  };
-
-  const shouldHoldResults = Boolean(generatedResult) && !hasAcknowledgedResults;
-  const isLoaderVisible = isProcessing || shouldHoldResults;
-  const showResultsReady = shouldHoldResults && !isProcessing;
-
-  const isInteractionLocked = isProcessing || isLoaderVisible;
-
   return (
     <div className="max-w-5xl mx-auto px-4 py-12 animate-in slide-in-from-bottom-4 duration-500">
-      <InteractiveLoader
-        isVisible={isLoaderVisible}
-        isLoading={isProcessing}
-        showResultsReady={showResultsReady}
-        onShowResults={handleShowResults}
-        onCancel={isProcessing ? handleCancelLoader : undefined}
-      />
       <div className="flex flex-col md:flex-row justify-between items-end mb-8 gap-4 border-b-4 border-black pb-4">
         <div>
           <h2 className="text-5xl font-black mb-2 tracking-tight">GENERATOR</h2>
@@ -107,7 +82,7 @@ export const Generator = memo(() => {
           <div className="flex flex-col md:flex-row gap-6 pt-4 border-t-2 border-black border-dashed">
             <NeoButton
               onClick={handleGenerateAI}
-              disabled={isInteractionLocked || !contextInput}
+              disabled={isProcessing || !contextInput}
               className="flex-1 text-xl py-6 hover:scale-[1.02]"
             >
               {isProcessing ? "PROCESSING..." : "✨ GENERATE MAGIC TAGS"}
@@ -116,10 +91,12 @@ export const Generator = memo(() => {
         </div>
       </NeoCard>
 
+      <InteractiveLoader isVisible={isProcessing} isLoading={isProcessing} />
+
       {/* OGP Results */}
       {error && <ErrorToast error={error} />}
 
-      {generatedResult && !isProcessing && hasAcknowledgedResults && (
+      {generatedResult && !isProcessing && (
         <>
           <div className="mb-12">
             <SocialPreviews data={generatedResult} />

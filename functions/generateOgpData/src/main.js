@@ -5,7 +5,7 @@ import {
   generateOgpPromptFromScreenshot,
   generateOgpImage,
 } from './genai.js';
-import { compressOgpImage } from './compressor.js';
+import { compressOgpImage, compressScreenshotForAi } from './compressor.js';
 import {
   ensureChromiumAvailable,
   GEMINI_LIMIT_MESSAGE,
@@ -95,7 +95,9 @@ export default async ({ req, res, log, error }) => {
 
       let ogpPrompt = null;
       if (screenshot) {
-        ogpPrompt = await generateOgpPromptFromScreenshot(screenshot);
+        log('Compressing screenshot for AI analysis...');
+        const compressedScreenshot = await compressScreenshotForAi(screenshot);
+        ogpPrompt = await generateOgpPromptFromScreenshot(compressedScreenshot);
       }
 
       // 3. Generate image if a prompt exists

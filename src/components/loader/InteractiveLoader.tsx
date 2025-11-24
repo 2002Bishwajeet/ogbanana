@@ -92,8 +92,8 @@ export const InteractiveLoader = ({
   if (!isVisible) return null;
 
   return (
-    <div className="fixed inset-0 z-9999 flex items-center justify-center bg-black/90 backdrop-blur-sm p-4 animate-in fade-in duration-300">
-      <div className="w-full max-w-2xl bg-[#F0F0F0] border-4 border-black shadow-[16px_16px_0px_0px_rgba(255,222,0,1)] relative overflow-hidden flex flex-col max-h-[80vh]">
+    <div className="w-full flex items-center justify-center p-4 animate-in fade-in duration-300 my-8">
+      <div className="w-full max-w-2xl bg-[#F0F0F0] border-4 border-black shadow-[16px_16px_0px_0px_rgba(255,222,0,1)] relative overflow-hidden flex flex-col">
         {/* Header Bar */}
         <div className="bg-[#FFDE00] border-b-4 border-black p-3 flex justify-between items-center shrink-0">
           <div className="flex items-center gap-2 font-black font-mono text-lg">

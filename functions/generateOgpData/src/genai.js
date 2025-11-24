@@ -1,24 +1,21 @@
 import { GoogleGenAI } from '@google/genai';
-import { stripHtml, truncate, buildInlineImagePart } from './utils.js';
+import {
+  stripHtml,
+  truncate,
+  buildInlineImagePart,
+  bytesToBase64,
+} from './utils.js';
 
 const nanoBananaPrompt = `
-**ROLE:** Visual Style Reverse-Engineer.
-**INPUT:** One UI screenshot.
-**TASK:** Generate a text-to-image prompt to create a 1200x630 (1.91:1) Open Graph banner that perfectly mimics the brand identity in the screenshot.
+You are a style extraction model.
 
-**ANALYSIS PROTOCOL:**
-1.  **Palette:** Extract dominant background, accent, and font colors (use names + approx hex).
-2.  **Vibe:** Identify the mood (e.g., Corporate Memphis, Cyberpunk, Swiss Minimalist, Luxury Serif).
-3.  **Elements:** Note UI patterns (rounded vs. sharp, gradients vs. flat, 3D vs. line art).
+From the screenshot, write a text-to-image prompt (max 60 words) that recreates a 1200×630 Open Graph banner matching the exact brand style.
 
-**OUTPUT INSTRUCTION:**
-Return **ONLY** the raw prompt string. Use the following structure for the prompt:
-"[Art Style & Medium] of [Abstract Subject based on text headers]. [Specific Color Palette]. [Lighting, Texture & Composition details]. [UI Elements/Shapes]. High fidelity, brand-compliant. --ar 1.91:1"
+Include: color palette (color names only), mood, geometry/shapes, spacing rhythm, textures, and overall visual hierarchy.
 
-**CRITICAL CONSTRAINTS:**
-* Do NOT describe the screenshot (e.g., "A screenshot of a website"). Describe the *art* to be generated.
-* Do NOT add your own style. Mimic the input image exactly.
-* Keep the prompt under 60 words.
+Describe the artwork, not the UI.  
+Return ONLY the final prompt text. —ar 1.91:1
+
 `;
 
 const geminiAiTextPrompt = `
@@ -119,7 +116,7 @@ export async function generateMetaTagsFromHtml(htmlContent = {}, options = {}) {
       temperature: 0.25,
       topP: 0.9,
       topK: 40,
-      maxOutputTokens: 1024,
+      maxOutputTokens: 2000,
       responseMimeType: 'application/json',
       systemInstruction: {
         parts: [{ text: geminiAiTextPrompt }],
@@ -133,7 +130,7 @@ export async function generateMetaTagsFromHtml(htmlContent = {}, options = {}) {
     ],
   });
 
-  const rawText = result.text?.();
+  const rawText = result.text;
   if (!rawText) {
     throw new Error('Gemini did not return metadata text.');
   }
@@ -150,13 +147,17 @@ export async function generateOgpPromptFromScreenshot(screenshotDataUrl) {
     throw new Error('Screenshot data URL is required.');
   }
 
-  const result = await getClient().models.generateContent({
+  const client = getClient();
+  const result = await client.models.generateContent({
     model: TEXT_MODEL,
     config: {
       temperature: 0.2,
       topP: 0.8,
       topK: 40,
-      maxOutputTokens: 256,
+      maxOutputTokens: 1024,
+      thinkingConfig: {
+        includeThoughts: false,
+      },
     },
     contents: [
       {
@@ -169,7 +170,7 @@ export async function generateOgpPromptFromScreenshot(screenshotDataUrl) {
     ],
   });
 
-  const promptText = result.text?.()?.trim();
+  const promptText = result.text?.trim();
 
   if (promptText) {
     return promptText;
@@ -200,23 +201,18 @@ export async function generateOgpImage(prompt) {
       model: IMAGE_MODEL,
       prompt,
       config: {
-        responseMimeType: 'image/jpeg',
+        numberOfImages: 1,
+        aspectRatio: '16:9',
+        outputMimeType: 'image/jpeg',
+        outputCompressionQuality: 80,
       },
     });
 
-    const inlineData = imageResult.images?.find(
-      (img) => img.inlineData
-    )?.inlineData;
+    const generatedImage = imageResult.generatedImages?.[0];
 
-    if (inlineData?.data) {
-      const mimeType = inlineData.mimeType || 'image/jpeg';
-      return `data:${mimeType};base64,${inlineData.data}`;
-    }
-
-    const directData = imageResult.images?.[0]?.data;
-    if (directData) {
-      const mimeType = imageResult.images?.[0]?.mimeType || 'image/jpeg';
-      return `data:${mimeType};base64,${directData}`;
+    if (generatedImage?.image) {
+      const mimeType = generatedImage.image.mimeType || 'image/jpeg';
+      return `data:${mimeType};base64,${bytesToBase64(generatedImage.image.imageBytes)}`;
     }
   } catch (err) {
     // Some SDK versions may not yet expose generateImage; fall back to generateContent.
@@ -224,7 +220,7 @@ export async function generateOgpImage(prompt) {
       const fallbackResult = await client.models.generateContent({
         model: IMAGE_MODEL,
         config: {
-          responseMimeType: 'image/jpeg',
+          responseMimeType: 'text/plain',
         },
         contents: [
           {

@@ -41,3 +41,35 @@ export async function compressOgpImage(dataUrl) {
     throw new Error(`Image compression failed: ${error.message}`);
   }
 }
+
+/**
+ * Optimized screenshot compressor for Gemini Vision.
+ *
+ * - Downscales to max 768px width (best token-to-fidelity ratio)
+ * - Retains aspect ratio
+ * - Uses JPEG quality 80 (minimal artifacts, still small)
+ * - Removes EXIF metadata
+ */
+export async function compressScreenshotForAi(dataUrl) {
+  if (!dataUrl) throw new Error('Image data URL is required.');
+
+  const matches = dataUrl.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+  if (!matches) throw new Error('Invalid data URL.');
+
+  const buffer = Buffer.from(matches[2], 'base64');
+
+  const output = await sharp(buffer)
+    .resize({
+      width: 640, // ← Reduce from 768 (still readable for OGP)
+      withoutEnlargement: true,
+      fit: 'inside',
+    })
+    .jpeg({
+      quality: 70, // ← Reduce from 82 (acceptable for analysis)
+      mozjpeg: true,
+      chromaSubsampling: '4:2:0', // ← More aggressive compression
+    })
+    .toBuffer();
+
+  return `data:image/jpeg;base64,${output.toString('base64')}`;
+}
