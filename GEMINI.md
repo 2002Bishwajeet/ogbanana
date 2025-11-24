@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-OGPBanana is a full-stack web application designed to generate Open Graph Protocol (OGP) meta tags for any given URL. The application provides a user-friendly interface to input a URL and optional context, and then uses AI to generate optimized OGP title, description, and a preview image.
+OGPBanana is a full-stack web application designed to generate Open Graph Protocol (OGP) meta tags for any given URL. The application provides a user-friendly interface to input a URL and optional context, and then uses AI to generate optimized OGP title, description, and a preview image. Results are generated asynchronously via Appwrite Functions and persisted so users can retrieve them once execution completes.
 
 The project is built with a modern tech stack:
 
@@ -17,11 +17,12 @@ The project is built with a modern tech stack:
 - **Backend:**
 
   - **Platform:** Appwrite Cloud.
-  - **Serverless Function:** A Node.js function (`generateOgpData`) handles the core logic of scraping, AI generation, and image processing.
-  - **Authentication:** Appwrite is used for user authentication and to manage user credits.
+  - **Serverless Function:** A Node.js function (`generateOgpData`) handles scraping, prompt creation, AI generation, and image compression. Executions now run asynchronously to prevent timeouts on longer jobs.
+  - **Data Persistence:** Each execution stores `{ url, meta, ogpImage }` as JSON in the `og-data` database's `ogp` table via Appwrite Tables (with per-user read permissions). The frontend reads from this table when asynchronous executions finish.
+  - **Authentication & Credits:** Appwrite manages user sessions and credit balances (deducted server-side per successful generation).
 
 - **AI Integration:**
-  - The backend function leverages a generative AI model (likely via a library in `genai.js`) to produce the OGP meta tags and a preview image based on the scraped content of the provided URL.
+  - The backend function leverages Gemini (see `functions/generateOgpData/src/genai.js`) to produce SEO + social metadata JSON and a Nano Banana-style prompt for banner generation. The output schema now includes `standard`, `social`, `assets`, and `audit` sections; the frontend types (`src/lib/types.ts`) have been updated accordingly.
 
 ## Building and Running
 
@@ -38,6 +39,8 @@ Create a `.env` file in the root of the project and add the following variables 
 VITE_APPWRITE_ENDPOINT="<YOUR_APPWRITE_ENDPOINT>"
 VITE_APPWRITE_PROJECT="<YOUR_APPWRITE_PROJECT_ID>"
 VITE_APPWRITE_FUNCTION_ID_OGP="<YOUR_OGP_FUNCTION_ID>"
+VITE_APPWRITE_FUNCTION_DATABASE_ID="og-data"
+VITE_APPWRITE_FUNCTION_TABLE_ID="ogp"
 ```
 
 ### Running the Development Server
@@ -75,6 +78,7 @@ pnpm run lint
 - **Component-Based Architecture:** The frontend is organized into pages, components, and providers, promoting reusability and separation of concerns.
 - **Strict TypeScript:** The project uses TypeScript, and all new code should be strictly typed. Avoid using `any` and define clear interfaces for props, API responses, and other data structures.
 - **API Calls with React Query:** All asynchronous API calls must be managed through TanStack Query (React Query). This ensures efficient caching, optimistic updates, and a consistent approach to data fetching and server state management.
+- **Async Function UX:** Because Appwrite executions now run with `async: true`, the client polls for completion and pulls the persisted payload from TablesDB before showing results. The `InteractiveLoader` keeps users engaged until outputs are ready.
 - **Performance Optimization:**
   - **`useTransition`:** For updates that might cause a noticeable lag in the UI (e.g., filtering a large list), use the `useTransition` hook to keep the interface responsive.
   - **Lazy Loading:** For large pages or components that are not required for the initial render, use `React.lazy` and Suspense to code-split and load them on demand. This improves initial page load performance.
@@ -86,6 +90,7 @@ pnpm run lint
 - **Styling:** The project uses Tailwind CSS with a custom "Neobrutalism" theme, configured directly within CSS files. UI components like `NeoButton` and `NeoCard` provide a consistent look and feel.
 - **Error Handling:** The application uses a custom `ErrorBoundary` component to catch and handle rendering errors, and `ErrorToast` to display errors to the user.
 - **Serverless Backend:** The backend logic is encapsulated in Appwrite serverless functions, which are independently deployable and scalable.
+- **Stored Execution Payloads:** The server writes each response to Appwrite Tables (`og-data/ogp`). Documents are keyed by execution ID (or a unique fallback) and include `encryptedContent` (currently plaintext JSON). Read permissions are scoped to the originating user; upgrade paths include encrypting data before storage.
 - **Modularity:** If a piece of UI or logic can be made into a separate, reusable component, it should be. This promotes maintainability and reusability.
 
 ## Reporting Issues

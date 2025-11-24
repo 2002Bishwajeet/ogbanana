@@ -1,53 +1,79 @@
 {
-  "projectId": "ogbanana",
-  "functions": [
-    {
-      "$id": "gen-ogp",
-      "name": "generateOgpData",
-      "runtime": "node-22",
-      "specification": "s-1vcpu-1gb",
-      "execute": ["any"],
-      "events": [],
-      "scopes": ["users.read", "users.write"],
-      "schedule": "",
-      "timeout": 900,
-      "enabled": true,
-      "logging": true,
-      "entrypoint": "src/main.js",
-      "commands": "apk update && apk fetch chromium nss freetype harfbuzz ca-certificates ttf-freefont && npm install",
-      "path": "functions/generateOgpData"
-    },
-    {
-      "$id": "limit-resetter",
-      "name": "limit-resetter",
-      "runtime": "bun-1.1",
-      "specification": "s-0.5vcpu-512mb",
-      "execute": ["any"],
-      "events": [],
-      "scopes": ["users.read", "users.write"],
-      "schedule": "0 0 1 * *",
-      "timeout": 15,
-      "enabled": true,
-      "logging": true,
-      "entrypoint": "src/main.ts",
-      "commands": "bun install",
-      "path": "functions/limit-resetter"
-    },
-    {
-      "$id": "perf-create",
-      "name": "createPrefs",
-      "runtime": "bun-1.1",
-      "specification": "s-0.5vcpu-512mb",
-      "execute": ["any"],
-      "events": ["users.*.create"],
-      "scopes": ["users.read", "users.write"],
-      "schedule": "",
-      "timeout": 15,
-      "enabled": true,
-      "logging": true,
-      "entrypoint": "src/main.ts",
-      "commands": "bun install",
-      "path": "functions/createPrefs"
-    }
-  ]
+    "projectId": "ogbanana",
+    "functions": [
+        {
+            "$id": "gen-ogp",
+            "name": "generateOgpData",
+            "runtime": "node-22",
+            "specification": "s-1vcpu-1gb",
+            "execute": [
+                "any"
+            ],
+            "events": [],
+            "scopes": [
+                "users.read",
+                "users.write",
+                "databases.read",
+                "tables.read",
+                "collections.read",
+                "tables.write",
+                "collections.write",
+                "rows.read",
+                "documents.read",
+                "rows.write",
+                "documents.write"
+            ],
+            "schedule": "",
+            "timeout": 180,
+            "enabled": true,
+            "logging": true,
+            "entrypoint": "src/main.js",
+            "commands": "apk update && apk fetch chromium nss freetype harfbuzz ca-certificates ttf-freefont && npm install",
+            "path": "functions/generateOgpData"
+        },
+        {
+            "$id": "limit-resetter",
+            "name": "limit-resetter",
+            "runtime": "bun-1.1",
+            "specification": "s-0.5vcpu-512mb",
+            "execute": [
+                "any"
+            ],
+            "events": [],
+            "scopes": [
+                "users.read",
+                "users.write"
+            ],
+            "schedule": "0 0 1 * *",
+            "timeout": 15,
+            "enabled": true,
+            "logging": true,
+            "entrypoint": "src/main.ts",
+            "commands": "bun install",
+            "path": "functions/limit-resetter"
+        },
+        {
+            "$id": "perf-create",
+            "name": "createPrefs",
+            "runtime": "bun-1.1",
+            "specification": "s-0.5vcpu-512mb",
+            "execute": [
+                "any"
+            ],
+            "events": [
+                "users.*.create"
+            ],
+            "scopes": [
+                "users.read",
+                "users.write"
+            ],
+            "schedule": "",
+            "timeout": 15,
+            "enabled": true,
+            "logging": true,
+            "entrypoint": "src/main.ts",
+            "commands": "bun install",
+            "path": "functions/createPrefs"
+        }
+    ]
 }
