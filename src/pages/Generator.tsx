@@ -80,7 +80,6 @@ export const Generator = memo(() => {
                 />
               </div>
 
-              {/* Context Input (Crucial for AI) */}
               <div className="flex flex-col gap-2">
                 <label className="font-black text-xl uppercase ">
                   Context / Keywords
@@ -97,7 +96,7 @@ export const Generator = memo(() => {
               <div className="flex flex-col md:flex-row gap-6 pt-4 border-t-2 border-black border-dashed">
                 <NeoButton
                   onClick={handleGenerateAI}
-                  disabled={isProcessing || !contextInput || isOutOfCredits}
+                  disabled={isProcessing || !urlInput || isOutOfCredits}
                   className="flex-1 text-xl py-6 hover:scale-[1.02]"
                 >
                   {isProcessing ? "PROCESSING..." : "✨ GENERATE MAGIC TAGS"}
