@@ -9,7 +9,7 @@ import {
 } from "./appwrite";
 import type { OGPData } from "./types";
 
-const EXECUTION_POLL_INTERVAL_MS = 10_000;
+const EXECUTION_POLL_INTERVAL_MS = 5_000;
 const EXECUTION_TIMEOUT_MS = 5 * 60 * 1_000; // 5 minutes safeguard
 
 type ExecutionPollingOptions = {
@@ -18,7 +18,7 @@ type ExecutionPollingOptions = {
     onStatusChange?: (status: Models.Execution["status"]) => void;
 };
 
-const waitForExecutionCompletion = (
+export const waitForExecutionCompletion = (
     functionId: string,
     executionId: string,
     options: ExecutionPollingOptions = {}
@@ -82,6 +82,7 @@ const waitForExecutionCompletion = (
             await checkExecution();
         }, intervalMs);
 
+        // Check immediately once
         void checkExecution();
     });
 };
@@ -135,11 +136,10 @@ const safeParseJson = (maybeJson?: string | null) => {
     }
 };
 
-export const generateOgpTags = async (
+export const createOgpExecution = async (
     url: string,
-    context: string,
-    options?: ExecutionPollingOptions
-): Promise<OGPData> => {
+    context: string
+): Promise<Models.Execution> => {
     try {
         const execution = await functions.createExecution({
             functionId: APPWRITE_FUNCTION_ID_OGP,
@@ -149,10 +149,21 @@ export const generateOgpTags = async (
             method: ExecutionMethod.POST,
             headers: { "Content-Type": "application/json" },
         });
+        return execution;
+    } catch (error: unknown) {
+        console.error("Error creating Appwrite OGP execution:", error);
+        throw error;
+    }
+};
 
+export const monitorOgpExecution = async (
+    executionId: string,
+    options?: ExecutionPollingOptions
+): Promise<OGPData> => {
+    try {
         const completedExecution = await waitForExecutionCompletion(
             APPWRITE_FUNCTION_ID_OGP,
-            execution.$id,
+            executionId,
             options
         );
 
@@ -165,8 +176,7 @@ export const generateOgpTags = async (
             );
         }
 
-        const persistedPayload = await fetchPersistedExecutionPayload(execution.$id);
-
+        const persistedPayload = await fetchPersistedExecutionPayload(executionId);
         const responsePayload = safeParseJson(completedExecution.responseBody ?? null);
 
         const mergedPayload = (() => {
@@ -185,8 +195,17 @@ export const generateOgpTags = async (
 
         return mergedPayload as OGPData;
     } catch (error: unknown) {
-        console.error("Error calling Appwrite OGP function:", error);
-        const message = error instanceof Error ? error.message : String(error);
-        throw new Error(`Failed to generate OGP tags: ${message}`);
+        console.error("Error monitoring Appwrite OGP execution:", error);
+        throw error;
     }
+};
+
+// Deprecated: kept for backward compatibility if needed, but we will switch to split functions
+export const generateOgpTags = async (
+    url: string,
+    context: string,
+    options?: ExecutionPollingOptions
+): Promise<OGPData> => {
+    const execution = await createOgpExecution(url, context);
+    return monitorOgpExecution(execution.$id, options);
 };

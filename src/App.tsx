@@ -25,6 +25,7 @@ const App = () => {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/generator" element={<Generator />} />
+          <Route path="/generator/:executionId" element={<Generator />} />
           <Route path="/pricing" element={<Pricing />} />
           <Route path="/tos" element={<TermsOfService />} />
           <Route path="/privacy" element={<PrivacyPolicy />} />

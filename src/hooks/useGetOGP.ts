@@ -1,43 +1,49 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
-import type { Models } from "appwrite";
-import { generateOgpTags } from "../lib/api";
-import { useAuth } from "../context/AuthContext";
-import { type OGPData } from "../lib/types";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { createOgpExecution, monitorOgpExecution } from "../lib/api";
 import { AUTH_SESSION_QUERY_KEY } from "../providers/AuthProvider";
+import { useEffect } from "react";
 
-type ExecutionStatus = Models.Execution["status"] | "waiting";
-
-export const useGetOGP = () => {
-  const [executionStatus, setExecutionStatus] = useState<ExecutionStatus | null>(
-    null
-  );
+export function useGetOGP(executionId?: string) {
   const queryClient = useQueryClient();
-  const { user } = useAuth();
-  const mutation = useMutation<
-    OGPData,
-    Error,
-    { urlInput: string; contextInput: string }
-  >({
-    mutationFn: async ({ urlInput, contextInput }) => {
-      if ((!urlInput && !contextInput) || !user) {
-        throw new Error("URL or context is required.");
-      }
-      setExecutionStatus("waiting");
-      const data = await generateOgpTags(urlInput, contextInput, {
-        onStatusChange: (status) => setExecutionStatus(status),
-      });
-      return data as OGPData;
-    },
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: AUTH_SESSION_QUERY_KEY });
-    },
-    onSettled: () => {
-      setExecutionStatus(null);
+
+  const {
+    mutate: startGeneration,
+    isPending: isStarting,
+    error: startError,
+    data: newExecution,
+  } = useMutation({
+    mutationFn: async ({ url, context }: { url: string; context: string }) => {
+      return createOgpExecution(url, context);
     },
   });
+
+  const {
+    data: generatedResult,
+    isLoading: isPolling,
+    error: pollError,
+  } = useQuery({
+    queryKey: ["ogp", executionId],
+    queryFn: () => monitorOgpExecution(executionId!),
+    enabled: !!executionId,
+    retry: false,
+    refetchOnWindowFocus: false,
+  });
+
+  // Invalidate auth query to update credits when we get a result
+  useEffect(() => {
+    if (generatedResult) {
+      void queryClient.invalidateQueries({ queryKey: AUTH_SESSION_QUERY_KEY });
+    }
+  }, [generatedResult, queryClient]);
+
+  const isProcessing = isStarting || (!!executionId && isPolling);
+  const error = startError || pollError;
+
   return {
-    ...mutation,
-    executionStatus,
+    startGeneration,
+    generatedResult,
+    isProcessing,
+    error,
+    newExecution, // to access the new execution ID after mutation
   };
-};
+}

@@ -66,7 +66,7 @@ export const SocialPreviews = ({ data }: { data: OGPData }) => {
         </span>
       </div>
 
-      <div className="border-2 border-black bg-white shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] p-6">
+      <div className="border-2 border-black bg-white shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] p-4 md:p-6 overflow-hidden">
         {/* Brutalist Tabs */}
         <div className="flex flex-wrap gap-2 mb-8 border-b-2 border-black pb-6">
           {platforms.map((platform) => (
