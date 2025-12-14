@@ -1,13 +1,10 @@
 import { useState, memo, useEffect } from "react";
 import { useNavigate, useParams } from "react-router";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ImageIcon, Copy } from "lucide-react";
 import { NeoButton } from "../components/ui/NeoButton";
 import { NeoCard } from "../components/ui/NeoCard";
 
 import { useAuth } from "../context/AuthContext";
-import { createOgpExecution, monitorOgpExecution } from "../lib/api";
-import { AUTH_SESSION_QUERY_KEY } from "../providers/AuthProvider";
 import { SocialPreviews } from "../components/socialPreview/SocialPreview";
 import { ErrorToast } from "../components/toast/ErrorToast";
 import { InteractiveLoader } from "../components/loader/InteractiveLoader";
@@ -17,65 +14,46 @@ export const Generator = memo(() => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { executionId } = useParams();
-  const queryClient = useQueryClient();
 
   // --- State ---
   const [urlInput, setUrlInput] = useState("");
   const [contextInput, setContextInput] = useState("");
   const isOutOfCredits = (user?.credits ?? 0) <= 0;
 
-  // --- Mutation: Start Generation ---
+  // --- Hook: Get OGP ---
   const {
-    mutate: startGeneration,
-    isPending: isStarting,
-    error: startError,
-  } = useMutation({
-    mutationFn: async () => {
-      if ((!urlInput && !contextInput) || !user) {
-        throw new Error("URL or context is required.");
-      }
-      return createOgpExecution(urlInput, contextInput);
-    },
-    onSuccess: (execution) => {
-      navigate(`/generator/${execution.$id}`);
-    },
-  });
+    startGeneration,
+    generatedResult,
+    isProcessing,
+    error,
+  } = useGetOGP(executionId);
 
-  // --- Query: Monitor Generation ---
-  const {
-    data: generatedResult,
-    isLoading: isPolling,
-    error: pollError,
-  } = useQuery({
-    queryKey: ["ogp", executionId],
-    queryFn: () => monitorOgpExecution(executionId!),
-    enabled: !!executionId,
-    retry: false, // Don't retry if it fails/times out, let the user retry
-    refetchOnWindowFocus: false,
-  });
-
-  // Invalidate auth query to update credits when we get a result
+  // Pre-fill URL if available and input is empty
   useEffect(() => {
-    if (generatedResult) {
-      void queryClient.invalidateQueries({ queryKey: AUTH_SESSION_QUERY_KEY });
-      // Pre-fill URL if available and input is empty
-      if (generatedResult.url && !urlInput) {
-        setUrlInput(generatedResult.url);
-      }
+    if (generatedResult?.url && !urlInput) {
+      setUrlInput(generatedResult.url);
     }
-  }, [generatedResult, queryClient, urlInput]);
+  }, [generatedResult, urlInput]);
 
   const handleGenerateAI = () => {
     if (isOutOfCredits) return;
-    startGeneration();
+    if ((!urlInput && !contextInput) || !user) {
+        // Validation could be better handled, but for now strict check before calling hook
+        return;
+    }
+    startGeneration(
+        { url: urlInput, context: contextInput },
+        {
+            onSuccess: (execution) => {
+                navigate(`/generator/${execution.$id}`);
+            }
+        }
+    );
   };
 
   const handleUpgradeClick = () => {
     navigate("/pricing");
   };
-
-  const isProcessing = isStarting || (!!executionId && isPolling);
-  const error = startError || pollError;
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-12 animate-in slide-in-from-bottom-4 duration-500 overflow-x-hidden w-full">
