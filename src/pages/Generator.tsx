@@ -9,6 +9,7 @@ import { SocialPreviews } from "../components/socialPreview/SocialPreview";
 import { ErrorToast } from "../components/toast/ErrorToast";
 import { InteractiveLoader } from "../components/loader/InteractiveLoader";
 import { OutOfCredits } from "../components/credits/OutOfCredits";
+import { useGetOGP } from "../hooks/useGetOGP";
 
 export const Generator = memo(() => {
   const { user } = useAuth();
