@@ -1,11 +1,13 @@
-import { useState, memo } from "react";
-import { useNavigate } from "react-router";
+import { useState, memo, useEffect } from "react";
+import { useNavigate, useParams } from "react-router";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ImageIcon, Copy } from "lucide-react";
 import { NeoButton } from "../components/ui/NeoButton";
 import { NeoCard } from "../components/ui/NeoCard";
 
 import { useAuth } from "../context/AuthContext";
-import { useGetOGP } from "../hooks/useGetOGP";
+import { createOgpExecution, monitorOgpExecution } from "../lib/api";
+import { AUTH_SESSION_QUERY_KEY } from "../providers/AuthProvider";
 import { SocialPreviews } from "../components/socialPreview/SocialPreview";
 import { ErrorToast } from "../components/toast/ErrorToast";
 import { InteractiveLoader } from "../components/loader/InteractiveLoader";
@@ -14,34 +16,72 @@ import { OutOfCredits } from "../components/credits/OutOfCredits";
 export const Generator = memo(() => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const {
-    mutate: generate,
-    data: generatedResult,
-    isPending: isProcessing,
-    error,
-  } = useGetOGP();
+  const { executionId } = useParams();
+  const queryClient = useQueryClient();
 
-  // Generator State
+  // --- State ---
   const [urlInput, setUrlInput] = useState("");
   const [contextInput, setContextInput] = useState("");
   const isOutOfCredits = (user?.credits ?? 0) <= 0;
 
-  const handleGenerateAI = () => {
-    if (isOutOfCredits) {
-      return;
+  // --- Mutation: Start Generation ---
+  const {
+    mutate: startGeneration,
+    isPending: isStarting,
+    error: startError,
+  } = useMutation({
+    mutationFn: async () => {
+      if ((!urlInput && !contextInput) || !user) {
+        throw new Error("URL or context is required.");
+      }
+      return createOgpExecution(urlInput, contextInput);
+    },
+    onSuccess: (execution) => {
+      navigate(`/generator/${execution.$id}`);
+    },
+  });
+
+  // --- Query: Monitor Generation ---
+  const {
+    data: generatedResult,
+    isLoading: isPolling,
+    error: pollError,
+  } = useQuery({
+    queryKey: ["ogp", executionId],
+    queryFn: () => monitorOgpExecution(executionId!),
+    enabled: !!executionId,
+    retry: false, // Don't retry if it fails/times out, let the user retry
+    refetchOnWindowFocus: false,
+  });
+
+  // Invalidate auth query to update credits when we get a result
+  useEffect(() => {
+    if (generatedResult) {
+      void queryClient.invalidateQueries({ queryKey: AUTH_SESSION_QUERY_KEY });
+      // Pre-fill URL if available and input is empty
+      if (generatedResult.url && !urlInput) {
+        setUrlInput(generatedResult.url);
+      }
     }
-    generate({ urlInput, contextInput });
+  }, [generatedResult, queryClient, urlInput]);
+
+  const handleGenerateAI = () => {
+    if (isOutOfCredits) return;
+    startGeneration();
   };
 
   const handleUpgradeClick = () => {
     navigate("/pricing");
   };
 
+  const isProcessing = isStarting || (!!executionId && isPolling);
+  const error = startError || pollError;
+
   return (
-    <div className="max-w-5xl mx-auto px-4 py-12 animate-in slide-in-from-bottom-4 duration-500">
+    <div className="max-w-5xl mx-auto px-4 py-12 animate-in slide-in-from-bottom-4 duration-500 overflow-x-hidden w-full">
       <div className="flex flex-col md:flex-row justify-between items-end mb-8 gap-4 border-b-4 border-black pb-4">
         <div>
-          <h2 className="text-5xl font-black mb-2 tracking-tight">GENERATOR</h2>
+          <h2 className="text-4xl md:text-5xl font-black mb-2 tracking-tight">GENERATOR</h2>
           <p className="font-mono bg-primary inline-block px-2 border border-main font-bold text-sm">
             MODEL: GEMINI-2.5-PRO
           </p>
@@ -57,15 +97,15 @@ export const Generator = memo(() => {
         </div>
       </div>
 
-      {isOutOfCredits ? (
+      {isOutOfCredits && !generatedResult && !isProcessing && !error ? (
         <OutOfCredits onUpgrade={handleUpgradeClick} />
       ) : (
         <>
-          <NeoCard className="mb-12 shadow-[12px_12px_0px_0px_rgba(0,0,0,1)]">
+          <NeoCard className="mb-12 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] md:shadow-[12px_12px_0px_0px_rgba(0,0,0,1)]">
             <div className="flex flex-col gap-8">
               {/* URL Input */}
               <div className="flex flex-col gap-2">
-                <label className="font-black text-xl uppercase flex items-center gap-2">
+                <label className="font-black text-xl uppercase flex items-center gap-2 flex-wrap">
                   Target URL
                   <span className="bg-secondary text-xs px-2 py-1 border border-main transform rotate-2">
                     REQUIRED
@@ -120,7 +160,7 @@ export const Generator = memo(() => {
               </div>
               <div className="grid md:grid-cols-2 gap-8 animate-in fade-in slide-in-from-bottom-8 duration-500">
                 {/* Preview Column */}
-                <div className="flex flex-col gap-4">
+                <div className="flex flex-col gap-4 min-w-0">
                   <div className="bg-black text-white p-3 font-bold border-2 border-black flex justify-between tracking-wider">
                     <span>VISUAL PREVIEW</span>
                     <span className="text-[#FFDE00]">1200x630</span>
@@ -151,7 +191,7 @@ export const Generator = memo(() => {
                 </div>
 
                 {/* Code Column */}
-                <div className="flex flex-col gap-4 h-full">
+                <div className="flex flex-col gap-4 h-full min-w-0">
                   <div className="bg-accent text-white p-3 font-bold border-2 border-black flex justify-between items-center tracking-wider">
                     <span>GENERATED HTML</span>
                     <button
@@ -161,11 +201,11 @@ export const Generator = memo(() => {
                       <Copy size={18} />
                     </button>
                   </div>
-                  <div className="border-2 border-black bg-[#1a1a1a] p-6 overflow-x-auto h-full shadow-[8px_8px_0px_0px_rgba(120,120,120,1)] relative group">
+                  <div className="border-2 border-black bg-[#1a1a1a] p-6 overflow-x-auto h-full shadow-[8px_8px_0px_0px_rgba(120,120,120,1)] relative group w-full">
                     <div className="absolute top-2 right-2 text-xs text-gray-500 font-mono border border-gray-700 px-2 py-1 rounded">
                       READ-ONLY
                     </div>
-                    <pre className="font-mono text-sm text-primary whitespace-pre-wrap leading-relaxed selection:bg-accent selection:text-white">
+                    <pre className="font-mono text-sm text-primary whitespace-pre-wrap leading-relaxed selection:bg-accent selection:text-white break-words">
                       {`<!-- AI Generated Tags by MetaBanana -->
 
 <title>${generatedResult.meta.standard.title}</title>
